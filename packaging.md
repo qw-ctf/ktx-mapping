@@ -12,7 +12,7 @@ possible:
 $ du -sh textures/schloss
  68M	textures/schloss
 
-# Convert to JPEG with for example graphicsmagick or imagemagick to trim size
+# Convert to JPEG with for example graphicsmagick to trim size.
 $ for x in textures/schloss/*.png; do
   gm convert -strip -quality 85 -define jpeg:dct-method=float $x ${x/png/jpg};
   rm $x;
@@ -21,7 +21,7 @@ done
 $ du -sh textures/schloss
  12M	textures/schloss
 
-# Add all relevant external files to a zip archive
+# Add all relevant external files to a zip archive.
 $ zip -r -9 schloss3.zip textures/schloss maps/schloss.lit locs/schloss.loc
   adding: textures/schloss/ (stored 0%)
   adding: textures/schloss/162.jpg (deflated 1%)
@@ -30,8 +30,10 @@ $ zip -r -9 schloss3.zip textures/schloss maps/schloss.lit locs/schloss.loc
   adding: maps/schloss.lit (deflated 56%)
   adding: locs/schloss.loc (deflated 81%)
 
+# Append the zip file at the end of the bsp file.
 $ cat maps/schloss.bsp schloss.zip > schloss.bsp
 
+# Verify content.
 $ unzip -t schloss.bsp
 Archive:  schloss.bsp
 warning [schloss.bsp]:  2197772 extra bytes at beginning or within zipfile
