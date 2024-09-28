@@ -30,7 +30,9 @@ $ zip -r -9 schloss.zip textures/schloss maps/schloss.lit locs/schloss.loc
   adding: maps/schloss.lit (deflated 56%)
   adding: locs/schloss.loc (deflated 81%)
 
-# Append the zip file at the end of the bsp file.
+# Append the zip file at the end of the bsp file. Note the different
+# paths for the bsp files here. Don't output to the same destination
+# as the original bsp file.
 $ cat maps/schloss.bsp schloss.zip > schloss.bsp
 
 # Verify content.
