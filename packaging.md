@@ -22,7 +22,7 @@ $ du -sh textures/schloss
  12M	textures/schloss
 
 # Add all relevant external files to a zip archive.
-$ zip -r -9 schloss3.zip textures/schloss maps/schloss.lit locs/schloss.loc
+$ zip -r -9 schloss.zip textures/schloss maps/schloss.lit locs/schloss.loc
   adding: textures/schloss/ (stored 0%)
   adding: textures/schloss/162.jpg (deflated 1%)
   ...
