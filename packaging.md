@@ -44,3 +44,19 @@ warning [schloss.bsp]:  2197772 extra bytes at beginning or within zipfile
     testing: locs/schloss.loc         OK
 No errors detected in compressed data of schloss.bsp.
 ```
+
+The same treatment goes for skyboxes:
+```
+unzip -t rctf3_b2.bsp
+Archive:  rctf3_b2.bsp
+warning [rctf3_b2.bsp]:  24406144 extra bytes at beginning or within zipfile
+  (attempting to process anyway)
+    testing: gfx/env/sc_terranova_bk.jpg   OK
+    testing: gfx/env/sc_terranova_dn.jpg   OK
+    testing: gfx/env/sc_terranova_ft.jpg   OK
+    testing: gfx/env/sc_terranova_lf.jpg   OK
+    testing: gfx/env/sc_terranova_rt.jpg   OK
+    testing: gfx/env/sc_terranova_up.jpg   OK
+    testing: locs/rctf3_b2.loc        OK
+No errors detected in compressed data of rctf3_b2.bsp.
+```
