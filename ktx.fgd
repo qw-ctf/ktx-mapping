@@ -2226,10 +2226,6 @@
 	"server; only this entity's position matters, and every other key on it is ignored. The rune " +
 	"appears 24 units below the point placed here." []
 
-@SolidClass base(Appearflags, Alpha, Bmodel) = func_ctf_wall :
-	"<b>CTF: solid brush model, used for barriers that belong to the CTF layout of a " +
-	"map.</b><br><br>Behaves as a plain solid wall." []
-
 
 //=============================================================================
 // Race mode
