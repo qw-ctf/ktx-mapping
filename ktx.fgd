@@ -968,3 +968,247 @@
 	model({ "path": ":progs/flame2.mdl" }) =
 	light_flame_small_white : "Small white flame ball with a burning sound. The model is made " +
 	"static, so it costs no entity slot at runtime." []
+
+
+//=============================================================================
+// Player starts and map flow
+//=============================================================================
+
+@BaseClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 32) color(0 255 0)
+	model({ "path": ":progs/player.mdl" }) = PlayerClass []
+
+@PointClass base(PlayerClass) = info_player_start : "Single-player start. KTX spawns players at " +
+	"info_player_deathmatch, so this is only used when a map is played outside deathmatch." []
+
+@PointClass base(PlayerClass) = info_player_start2 : "Return point used when the player comes " +
+	"back to the start map after finishing an episode. Unused in deathmatch." []
+
+@PointClass base(PlayerClass) = info_player_coop : "Cooperative start. Unused in deathmatch." []
+
+@PointClass base(PlayerClass, Targetname) = info_player_deathmatch : "Deathmatch spawn point. " +
+	"KTX places players at these, choosing between them by how dangerous each one is at the " +
+	"moment of spawning.\n" +
+	"\n" +
+	"KTX drops each spawn point to the floor when the map loads, which corrects spawns left " +
+	"floating above the ground. A spawn that would fall more than 64 units is left where the " +
+	"mapper put it, so intentionally raised spawns are preserved.\n" +
+	"\n" +
+	"The spawn keys below equip a player spawning here, which HoonyMode uses to set up a round. " +
+	"They have no effect in ordinary deathmatch."
+[
+	spawn_items(flags) =
+	[
+		1 : "HoonyMode: Shotgun" : 0
+		2 : "HoonyMode: Super shotgun" : 0
+		4 : "HoonyMode: Nailgun" : 0
+		8 : "HoonyMode: Super nailgun" : 0
+		16 : "HoonyMode: Grenade launcher" : 0
+		32 : "HoonyMode: Rocket launcher" : 0
+		64 : "HoonyMode: Thunderbolt" : 0
+		8192 : "HoonyMode: Green armour" : 0
+		16384 : "HoonyMode: Yellow armour" : 0
+		32768 : "HoonyMode: Red armour" : 0
+		131072 : "HoonyMode: Silver key" : 0
+		262144 : "HoonyMode: Gold key" : 0
+		524288 : "HoonyMode: Ring of shadows" : 0
+		1048576 : "HoonyMode: Pentagram of protection" : 0
+		2097152 : "HoonyMode: Biosuit" : 0
+		4194304 : "HoonyMode: Quad damage" : 0
+	]
+	spawn_armorvalue(integer) : "Spawn Armour Points" : : "HOONYMODE: armour points a player has " +
+		"on spawning here. Set the armour type in the spawn items as well, or the points have no " +
+		"armour to belong to."
+	spawn_ammo_shells(integer) : "Spawn Shells" : : "HOONYMODE: shells a player has on spawning " +
+		"here."
+	spawn_ammo_nails(integer) : "Spawn Nails" : : "HOONYMODE: nails a player has on spawning here."
+	spawn_ammo_rockets(integer) : "Spawn Rockets" : : "HOONYMODE: rockets a player has on " +
+		"spawning here."
+	spawn_ammo_cells(integer) : "Spawn Cells" : : "HOONYMODE: cells a player has on spawning here."
+	spawn_initial_delay(float) : "Spawn Freeze Time" : : "HOONYMODE: how long in seconds a player " +
+		"spawning here is held in place before being allowed to move."
+]
+
+@PointClass base(Appearflags) size(-16 -16 -16, 16 16 16) color(255 128 128) =
+	info_intermission : "Camera position shown between maps and after a match. Several may be " +
+	"placed, and the game picks between them."
+[
+	mangle(string) : "Camera Angles" : "0 0 0" : "Direction the camera looks, as " +
+		"'pitch yaw roll'. Negative pitch looks upward. This entity uses mangle rather than " +
+		"angle so that the camera can be tilted as well as turned."
+]
+
+@SolidClass base(Appearflags, Target, Targetname) = trigger_changelevel : "Sends every player to " +
+	"another map on touch."
+[
+	map(string) : "Next Map" : : "File name of the map to load, without the .bsp extension."
+	spawnflags(flags) =
+	[
+		1 : "No intermission" : 0 : "Changes map immediately instead of showing the intermission " +
+			"camera first."
+	]
+]
+
+
+//=============================================================================
+// Items
+//=============================================================================
+
+@BaseClass base(Appearflags, Target, Targetname) = Item [
+	message(string) : "Pickup Message" : : "Text shown to the player who picks this item up."
+	delay(float) : "Trigger Delay" : : "Seconds to wait between this item being picked up and " +
+		"its target firing."
+]
+
+@BaseClass base(Item) size(0 0 0, 32 32 56) color(80 0 200) = Ammo [
+	spawnflags(flags) =
+	[
+		1 : "Large box" : 0 : "Holds twice the ammunition and uses the larger model."
+	]
+]
+
+@PointClass base(Ammo) model({{
+		spawnflags & 1 -> ":maps/b_shell1.bsp",
+		":maps/b_shell0.bsp"
+	}}) = item_shells : "Shells, for the shotgun and super shotgun. 20 in a small box, 40 in a " +
+	"large one." []
+
+@PointClass base(Ammo) model({{
+		spawnflags & 1 -> ":maps/b_nail1.bsp",
+		":maps/b_nail0.bsp"
+	}}) = item_spikes : "Nails, for the nailgun and super nailgun. 25 in a small box, 50 in a " +
+	"large one." []
+
+@PointClass base(Ammo) model({{
+		spawnflags & 1 -> ":maps/b_rock1.bsp",
+		":maps/b_rock0.bsp"
+	}}) = item_rockets : "Rockets, for the grenade launcher and rocket launcher. 5 in a small " +
+	"box, 10 in a large one." []
+
+@PointClass base(Ammo) model({{
+		spawnflags & 1 -> ":maps/b_batt1.bsp",
+		":maps/b_batt0.bsp"
+	}}) = item_cells : "Cells, for the thunderbolt. 6 in a small box, 12 in a large one." []
+
+@PointClass base(Ammo) = item_weapon : "Ammunition box from the original Quake entity set, kept " +
+	"so that old maps still load. The flags choose which kind of ammunition it becomes, and it " +
+	"turns itself into the matching item_shells, item_spikes or item_rockets on map load. An " +
+	"entity with none of the ammunition flags set removes itself. New maps should place the " +
+	"ammunition entities directly."
+[
+	spawnflags(flags) =
+	[
+		1 : "Shotgun ammunition" : 0 : "Becomes item_shells."
+		2 : "Rocket ammunition" : 0 : "Becomes item_rockets. Ignored if the shotgun flag is set."
+		4 : "Nail ammunition" : 0 : "Becomes item_spikes. Ignored if the shotgun flag is set."
+		8 : "Large box" : 0 : "Carried over to the resulting ammunition item."
+	]
+]
+
+@PointClass base(Item) size(0 0 0, 32 32 56) color(80 0 200)
+	model({{
+		spawnflags & 2 -> ":maps/b_bh100.bsp",
+		spawnflags & 1 -> ":maps/b_bh10.bsp",
+		":maps/b_bh25.bsp"
+	}}) = item_health : "Health pickup. Restores 25 points by default, 15 as a rotten health " +
+	"vial, or 100 as a megahealth that lifts the player above maximum health and then decays " +
+	"back down."
+[
+	spawnflags(flags) =
+	[
+		1 : "Rotten" : 0 : "Restores 15 points instead of 25."
+		2 : "Megahealth" : 0 : "Restores 100 points and allows health above 100, which then " +
+			"decays back down. Takes precedence over the rotten flag."
+	]
+]
+
+@PointClass base(Item) size(-16 -16 0, 16 16 56) color(80 0 200)
+	model({ "path": ":progs/armor.mdl", "skin": 0 }) =
+	item_armor1 : "Green armour. 100 points, absorbing 30 percent of incoming damage." []
+
+@PointClass base(Item) size(-16 -16 0, 16 16 56) color(80 0 200)
+	model({ "path": ":progs/armor.mdl", "skin": 1 }) =
+	item_armor2 : "Yellow armour. 150 points, absorbing 60 percent of incoming damage." []
+
+@PointClass base(Item) size(-16 -16 0, 16 16 56) color(80 0 200)
+	model({ "path": ":progs/armor.mdl", "skin": 2 }) =
+	item_armorInv : "Red armour. 200 points, absorbing 80 percent of incoming damage. Note the " +
+	"capital letters in the classname, which KTX matches exactly." []
+
+@PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
+	model({ "path": ":progs/quaddama.mdl" }) =
+	item_artifact_super_damage : "Quad damage. Multiplies the damage the carrier deals by four " +
+	"for 30 seconds." []
+
+@PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
+	model({ "path": ":progs/invulner.mdl" }) =
+	item_artifact_invulnerability : "Pentagram of protection. Makes the carrier immune to damage " +
+	"for 30 seconds, though they can still be telefragged and drowned." []
+
+@PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
+	model({ "path": ":progs/invisibl.mdl" }) =
+	item_artifact_invisibility : "Ring of shadows. Makes the carrier nearly invisible for 30 " +
+	"seconds, leaving only their eyes visible." []
+
+@PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
+	model({ "path": ":progs/suit.mdl" }) =
+	item_artifact_envirosuit : "Biosuit. Protects the carrier from slime, lava and drowning for " +
+	"30 seconds." []
+
+@PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
+	model({ "path": ":progs/w_s_key.mdl" }) =
+	item_key1 : "First key of the map. The worldtype set in worldspawn decides what it looks " +
+	"like and what it is called: a silver key in a medieval map, a silver runekey in a runic " +
+	"one, or a security keycard in a base map. The editor always previews the medieval model." []
+
+@PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
+	model({ "path": ":progs/w_g_key.mdl" }) =
+	item_key2 : "Second key of the map. The worldtype set in worldspawn decides what it looks " +
+	"like and what it is called: a gold key in a medieval map, a gold runekey in a runic one, or " +
+	"an industrial keycard in a base map. The editor always previews the medieval model." []
+
+@PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
+	model({{
+		spawnflags & 2 -> ":progs/end2.mdl",
+		spawnflags & 4 -> ":progs/end3.mdl",
+		spawnflags & 8 -> ":progs/end4.mdl",
+		":progs/end1.mdl"
+	}}) = item_sigil : "Rune collected at the end of an episode. Opens the func_episodegate and " +
+	"func_bossgate brushes matching the same episode."
+[
+	spawnflags(flags) =
+	[
+		1 : "Episode 1" : 1
+		2 : "Episode 2" : 0
+		4 : "Episode 3" : 0
+		8 : "Episode 4" : 0
+	]
+]
+
+
+//=============================================================================
+// Weapons
+//=============================================================================
+
+@BaseClass base(Item) size(-16 -16 0, 16 16 56) color(0 0 200) = Weapon []
+
+@PointClass base(Weapon) model({ "path": ":progs/g_shot.mdl" }) =
+	weapon_supershotgun : "Super shotgun. Fires both barrels at once for double the damage of " +
+	"the shotgun, and uses two shells a shot." []
+
+@PointClass base(Weapon) model({ "path": ":progs/g_nail.mdl" }) =
+	weapon_nailgun : "Nailgun. Fires a steady stream of nails." []
+
+@PointClass base(Weapon) model({ "path": ":progs/g_nail2.mdl" }) =
+	weapon_supernailgun : "Super nailgun. Fires nails at the same rate as the nailgun but for " +
+	"twice the damage, using two nails a shot." []
+
+@PointClass base(Weapon) model({ "path": ":progs/g_rock.mdl" }) =
+	weapon_grenadelauncher : "Grenade launcher. Fires grenades that bounce off surfaces and " +
+	"explode on contact with a player or after a short fuse." []
+
+@PointClass base(Weapon) model({ "path": ":progs/g_rock2.mdl" }) =
+	weapon_rocketlauncher : "Rocket launcher. Fires rockets that explode on impact." []
+
+@PointClass base(Weapon) model({ "path": ":progs/g_light.mdl" }) =
+	weapon_lightning : "Thunderbolt. Fires a continuous lightning beam, and discharges all " +
+	"remaining cells at once if fired under water." []
