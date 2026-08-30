@@ -1638,3 +1638,490 @@
 			"hurting what passes through it."
 	]
 ]
+
+
+//=============================================================================
+// Ambient sounds
+//
+// The preset ambient entities take no keys beyond their position. Each one
+// registers a looping sound that fades with distance and then removes itself,
+// so it costs nothing at runtime.
+//=============================================================================
+
+@BaseClass base(Appearflags) size(-8 -8 -8, 8 8 8) color(64 32 192) = Ambient []
+
+@PointClass base(Ambient) = ambient_general : "Looping ambient sound of the mapper's choosing, " +
+	"registered at this position and fading with distance."
+[
+	noise(string) : "Sound File" : : "REQUIRED: path to the sound to loop, such as " +
+		"'ambience/windfly.wav'. The map fails to load if this is left empty."
+	volume(float) : "Volume" : "0.5" : "Loudness of the sound, from 0.0 to 1.0."
+	speed(choices) : "Falloff" : 0 : "How quickly the sound fades with distance." =
+	[
+		-1 : "None - heard everywhere on the map"
+		0 : "Normal"
+		2 : "Idle - fades over a short distance"
+		3 : "Static - fades over the shortest distance"
+	]
+]
+
+@PointClass base(Ambient) = ambient_drip : "Looping sound of dripping water." []
+@PointClass base(Ambient) = ambient_drone : "Looping sound of machinery or an engine." []
+@PointClass base(Ambient) = ambient_comp_hum : "Looping hum of computer equipment." []
+@PointClass base(Ambient) = ambient_flouro_buzz : "Looping buzz of a fluorescent tube. Note the " +
+	"misspelling in the classname, which KTX matches exactly." []
+@PointClass base(Ambient) = ambient_light_buzz : "Looping electrical buzz of a light fitting." []
+@PointClass base(Ambient) = ambient_suck_wind : "Looping sound of wind." []
+@PointClass base(Ambient) = ambient_swamp1 : "Looping sound of croaking frogs." []
+@PointClass base(Ambient) = ambient_swamp2 : "Looping sound of croaking frogs, second variant." []
+@PointClass base(Ambient) = ambient_thunder : "Looping sound of distant thunder." []
+
+@PointClass base(Appearflags) size(-10 -10 -10, 10 10 10) color(64 32 192) =
+	misc_noisemaker : "Plays a burst of enforcer sounds twice a second, without pause. This " +
+	"exists to load the sound system for performance testing and has no place in a finished " +
+	"map." []
+
+
+//=============================================================================
+// Hazards and traps
+//=============================================================================
+
+@PointClass base(Appearflags) size(-8 -8 -8, 8 8 8) color(220 150 150)
+	model({ "path": ":progs/lavaball.mdl" }) =
+	misc_fireball : "Launches lava balls upward at random intervals. They arc back down and hurt " +
+	"whatever they land on, as seen over the lava pits of the original game."
+[
+	speed(integer) : "Launch Speed" : 40 : "How hard the lava balls are thrown upwards."
+]
+
+@PointClass base(Appearflags) size(0 0 0, 32 32 64) color(220 150 150)
+	model({ "path": ":maps/b_explob.bsp" }) =
+	misc_explobox : "Large explosive barrel. Explodes when shot, damaging everything nearby and " +
+	"setting off other barrels in range." []
+
+@PointClass base(Appearflags) size(0 0 0, 32 32 32) color(220 150 150)
+	model({ "path": ":maps/b_exbox2.bsp" }) =
+	misc_explobox2 : "Small explosive barrel. Behaves like the large one with a smaller blast." []
+
+@PointClass base(Appearflags, Targetname, Angle) size(-8 -8 -8, 8 8 8) color(220 150 150) =
+	trap_spikeshooter : "Fires a single spike in the direction it faces each time it is " +
+	"triggered."
+[
+	spawnflags(flags) =
+	[
+		1 : "Superspike" : 0 : "Fires the heavier super nailgun spike instead of an ordinary one."
+		2 : "Laser" : 0 : "Fires an enforcer laser bolt instead of a spike."
+	]
+]
+
+@PointClass base(Appearflags, Targetname, Angle) size(-8 -8 -8, 8 8 8) color(220 150 150) =
+	trap_shooter : "Fires continuously in the direction it faces, without needing to be " +
+	"triggered.\n" +
+	"\n" +
+	"The KTX source describes a nextthink key for staggering the first shot of several shooters, " +
+	"but KTX has no way to read that key from a map, so it is not offered here. Shooters sharing " +
+	"an interval will fire in step."
+[
+	wait(float) : "Interval" : "1" : "Seconds between shots."
+	spawnflags(flags) =
+	[
+		1 : "Superspike" : 0 : "Fires the heavier super nailgun spike instead of an ordinary one."
+		2 : "Laser" : 0 : "Fires an enforcer laser bolt instead of a spike."
+	]
+]
+
+
+//=============================================================================
+// Markers and utility entities
+//=============================================================================
+
+@PointClass base(Appearflags, Targetname, PointCompiler) size(-4 -4 -4, 4 4 4) color(0 128 0) =
+	info_null : "Marker that removes itself as soon as the map loads. Its purpose is to give a " +
+	"light entity something to aim at: the light compiler reads its position while building the " +
+	"lightmap, and nothing remains at runtime." []
+
+@PointClass base(Appearflags, Targetname, PointCompiler) size(-4 -4 -4, 4 4 4) color(0 128 0) =
+	info_notnull : "Marker that stays in the map, for entities that need a position to aim at or " +
+	"move towards while the map is running. Does nothing on its own." []
+
+@PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8) color(220 0 0) =
+	event_lightning : "Triggers the lightning strike that kills Chthon. Fires when triggered and " +
+	"is only meaningful on a map containing monster_boss." []
+
+
+//=============================================================================
+// Capture the flag
+//
+// These entities only do anything while the server is running CTF. The team
+// spawn points are inert markers that KTX looks up by classname.
+//=============================================================================
+
+@PointClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 40) color(255 0 0)
+	model({ "path": ":progs/flag.mdl", "skin": 0 }) =
+	item_flag_team1 : "CTF: red team flag, and the point it returns to when dropped. KTX drops " +
+	"the flag to the floor on map load and removes it if it cannot find ground below, so place " +
+	"it above a solid surface.\n" +
+	"\n" +
+	"The model depends on server configuration: with custom models turned off the flag is drawn " +
+	"as a key instead." []
+
+@PointClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 40) color(0 0 255)
+	model({ "path": ":progs/flag.mdl", "skin": 1 }) =
+	item_flag_team2 : "CTF: blue team flag, and the point it returns to when dropped. KTX drops " +
+	"the flag to the floor on map load and removes it if it cannot find ground below, so place " +
+	"it above a solid surface.\n" +
+	"\n" +
+	"The model depends on server configuration: with custom models turned off the flag is drawn " +
+	"as a key instead." []
+
+@PointClass base(PlayerClass) color(255 0 0)
+	model({ "path": ":progs/player.mdl" }) =
+	info_player_team1 : "CTF: red team spawn point." []
+
+@PointClass base(PlayerClass) color(0 0 255)
+	model({ "path": ":progs/player.mdl" }) =
+	info_player_team2 : "CTF: blue team spawn point." []
+
+@PointClass base(PlayerClass) color(255 0 0)
+	model({ "path": ":progs/player.mdl" }) =
+	info_player_team1_deathmatch : "CTF: red team spawn point used when the server is configured " +
+	"to spawn teams at their own bases." []
+
+@PointClass base(PlayerClass) color(0 0 255)
+	model({ "path": ":progs/player.mdl" }) =
+	info_player_team2_deathmatch : "CTF: blue team spawn point used when the server is configured " +
+	"to spawn teams at their own bases." []
+
+@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(50 205 50)
+	model({ "path": ":progs/end1.mdl" }) =
+	item_rune_res : "CTF: position the resistance rune returns to. The rune itself is created by " +
+	"the server; only this entity's position matters, and every other key on it is ignored. The " +
+	"rune appears 24 units below the point placed here." []
+
+@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(178 34 34)
+	model({ "path": ":progs/end2.mdl" }) =
+	item_rune_str : "CTF: position the strength rune returns to. The rune itself is created by " +
+	"the server; only this entity's position matters, and every other key on it is ignored. The " +
+	"rune appears 24 units below the point placed here." []
+
+@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(255 255 153)
+	model({ "path": ":progs/end3.mdl" }) =
+	item_rune_hst : "CTF: position the haste rune returns to. The rune itself is created by the " +
+	"server; only this entity's position matters, and every other key on it is ignored. The rune " +
+	"appears 24 units below the point placed here." []
+
+@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(137 207 240)
+	model({ "path": ":progs/end4.mdl" }) =
+	item_rune_rgn : "CTF: position the regeneration rune returns to. The rune itself is created " +
+	"by the server; only this entity's position matters, and every other key on it is ignored. " +
+	"The rune appears 24 units below the point placed here." []
+
+@SolidClass base(Appearflags, Alpha, Bmodel) = func_ctf_wall : "CTF: solid brush model, used for " +
+	"barriers that belong to the CTF layout of a map. Behaves as a plain solid wall." []
+
+
+//=============================================================================
+// Race mode
+//
+// A race route is a chain of entities: race_route_start names the route and
+// points at the first race_route_marker, each marker points at the next, and
+// the marker with no target is the finish line. Routes need at least two
+// entities and may not loop back on themselves.
+//
+// KTX removes the whole route from the map once it has read it, and ignores
+// routes entirely unless the server is running race mode. Routes are more
+// often supplied in a separate .route file than built into the map.
+//=============================================================================
+
+@PointClass base(Appearflags, Target, Targetname) size(-16 -16 -16, 16 16 16) color(255 128 0) =
+	race_route_start : "RACE: starting line of a race route, and the entity that carries the " +
+	"route's settings. Its target names the first marker on the route."
+[
+	race_route_name(string) : "Route Name" : : "RACE: short name of the route, shown to players " +
+		"choosing between routes."
+	race_route_description(string) : "Route Description" : : "RACE: longer description of the " +
+		"route, shown alongside the name."
+	race_route_timeout(integer) : "Time Limit" : : "RACE: seconds a racer has to finish before " +
+		"the run is abandoned."
+	race_route_weapon_mode(choices) : "Weapons" : 1 : "RACE: whether racers may use weapons " +
+		"during a run." =
+	[
+		1 : "No weapons"
+		2 : "Weapons allowed"
+		3 : "Weapons allowed after two seconds"
+	]
+	race_route_falsestart_mode(choices) : "False Starts" : 1 : "RACE: whether a racer may move " +
+		"before the start signal." =
+	[
+		1 : "Racer is held still until the start signal"
+		2 : "Racer may move early, and the run counts from the signal"
+	]
+	race_route_start_yaw(float) : "Start Facing" : : "RACE: direction the racer faces at the " +
+		"start line, in degrees."
+	race_route_start_pitch(float) : "Start Pitch" : : "RACE: angle the racer looks up or down at " +
+		"the start line, in degrees. Negative values look upward."
+	size(string) : "Trigger Size" : "16 16 16" : "RACE: half the size of the start volume in " +
+		"units, as 'x y z'."
+]
+
+@PointClass base(Appearflags, Target, Targetname, Race) size(-16 -16 -16, 16 16 16)
+	color(255 128 0) =
+	race_route_marker : "RACE: checkpoint on a race route. Its target names the next marker; the " +
+	"marker that targets nothing is the finish line."
+[
+	size(string) : "Trigger Size" : "16 16 16" : "RACE: half the size of the checkpoint volume " +
+		"in units, as 'x y z'."
+]
+
+
+//=============================================================================
+// Monsters
+//
+// KTX carries the full single-player monster set, but removes monsters from a
+// deathmatch server unless they are explicitly marked for it. A monster spawns
+// in deathmatch only when all three skill flags are set and the deathmatch
+// flag is clear, which is the spawnflags value 1792. This is how the bloodfest
+// cooperative mode places its monsters.
+//=============================================================================
+
+@BaseClass base(Appearflags, Target, Targetname, Angle) color(220 0 0) size(-16 -16 -24, 16 16 40)
+	model({ "path": ":progs/soldier.mdl" }) = Monster
+[
+	spawnflags(flags) =
+	[
+		1 : "Ambush" : 0 : "The monster ignores gunfire and other noises, and wakes only when it " +
+			"sees a player."
+		256 : "Not on easy" : 0 : "Removed on skill 0. All three skill flags must be set for a " +
+			"monster to appear in deathmatch."
+		512 : "Not on normal" : 0 : "Removed on skill 1. All three skill flags must be set for a " +
+			"monster to appear in deathmatch."
+		1024 : "Not on hard" : 0 : "Removed on skill 2 and above. All three skill flags must be " +
+			"set for a monster to appear in deathmatch, giving spawnflags 1792."
+		2048 : "Not in deathmatch" : 0 : "Removed in deathmatch even when the three skill flags " +
+			"are set."
+	]
+]
+
+@PointClass base(Monster) model({ "path": ":progs/soldier.mdl" }) =
+	monster_army : "Grunt. Fires a shotgun at range." []
+
+@PointClass base(Monster) size(-32 -32 -24, 32 32 40) model({ "path": ":progs/dog.mdl" }) =
+	monster_dog : "Rottweiler. Runs fast and leaps at the player." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/enforcer.mdl" }) =
+	monster_enforcer : "Enforcer. Fires laser bolts." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/knight.mdl" }) =
+	monster_knight : "Knight. Charges and attacks with a sword." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/hknight.mdl" }) =
+	monster_hell_knight : "Death knight. Fights with a sword and throws fans of magical bolts." []
+
+@PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/ogre.mdl" }) =
+	monster_ogre : "Ogre. Fires grenades and attacks with a chainsaw up close." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/wizard.mdl" }) =
+	monster_wizard : "Scrag. Floats through the air and spits acid." []
+
+@PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/demon.mdl" }) =
+	monster_demon1 : "Fiend. Leaps at the player and claws." []
+
+@PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/shalrath.mdl" }) =
+	monster_shalrath : "Vore. Launches homing spike balls that chase the player." []
+
+@PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/shambler.mdl" }) =
+	monster_shambler : "Shambler. Takes only half damage from explosions and calls down " +
+	"lightning." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 24) model({ "path": ":progs/tarbaby.mdl" }) =
+	monster_tarbaby : "Spawn. Bounces around erratically and explodes on contact." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 24) model({ "path": ":progs/fish.mdl" }) =
+	monster_fish : "Rotfish. Swims and bites. Only works in water." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 40)
+	model({ "path": ":progs/zombie.mdl", "frame": {{ spawnflags & 1 -> 192, 0 }} }) =
+	monster_zombie : "Zombie. Throws gibs and can only be put down for good by gibbing it with " +
+	"an explosion."
+[
+	spawnflags(flags) =
+	[
+		1 : "Crucified" : 0 : "The zombie hangs motionless on a cross as scenery, and never " +
+			"attacks."
+		2 : "Ambush" : 0 : "The zombie wakes only when it sees a player."
+	]
+]
+
+@PointClass base(Monster) size(-128 -128 -24, 128 128 256) model({ "path": ":progs/boss.mdl" }) =
+	monster_boss : "Chthon, the lava boss. Cannot be hurt by weapons and has to be killed with " +
+	"the lightning trap built from event_lightning." []
+
+@PointClass base(Monster) size(-16 -16 -24, 16 16 32) model({ "path": ":progs/oldone.mdl" }) =
+	monster_oldone : "Shub-Niggurath, the final boss. Killed by telefragging." []
+
+@PointClass base(Appearflags, Target, Targetname) size(-16 -16 -24, 16 16 40) color(220 0 0) =
+	info_monster_start : "Position a monster is teleported in at when it is spawned during play " +
+	"rather than placed in the map. Removed in deathmatch." []
+
+
+//=============================================================================
+// Rotating brush entities
+//
+// Rotation is built from three entities working together:
+//
+//   info_rotate     marks the axis the brushes turn around.
+//   rotate_object   holds the brushes that turn. It targets the info_rotate.
+//   a controller    func_rotate_entity for continuous spinning, or
+//                   func_rotate_door for something that turns between two
+//                   positions. Both are point entities placed on the axis,
+//                   and both target the rotate_object.
+//
+// Rotating brushes carry no collision of their own. To make one solid, cover
+// its volume with func_movewall entities sharing the rotate_object's name;
+// they travel the same circular path without turning, so several small ones
+// are needed to approximate the shape.
+//=============================================================================
+
+@PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8) color(0 128 0) =
+	info_rotate : "Axis that rotating brushes turn around. Place it at the centre of rotation " +
+	"and give it a name for the rotate_object to target. It removes itself once the rotating " +
+	"entities have found it." []
+
+@SolidClass base(Appearflags, Targetname, Target, Alpha, Bmodel) color(0 128 204) =
+	rotate_object : "Brushes that are rotated by a func_rotate_entity or func_rotate_door. It " +
+	"has no collision and does not move on its own."
+[
+	target(target_destination) : "Axis" : : "REQUIRED: name of the info_rotate this object turns " +
+		"around."
+]
+
+@PointClass base(Appearflags, Targetname, Target) size(-8 -8 -8, 8 8 8) color(64 128 64) =
+	func_rotate_entity : "Turns a rotate_object continuously. Triggering it starts and stops the " +
+	"rotation, easing in and out over the acceleration time."
+[
+	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the rotate_object to " +
+		"turn."
+	rotate(string) : "Rotation Speed" : "0 0 0" : "Degrees per second around each axis, as " +
+		"'pitch yaw roll'. '0 90 0' spins anticlockwise about the vertical axis at 90 degrees a " +
+		"second; negate a value to reverse that axis."
+	speed(float) : "Acceleration Time" : "5" : "Seconds taken to reach full speed from rest, and " +
+		"to slow back down."
+	spawnflags(flags) =
+	[
+		1 : "Toggle" : 0 : "Each trigger reverses whether the object is turning, instead of " +
+			"starting it each time."
+		2 : "Start on" : 0 : "The object is already turning when the map begins."
+	]
+]
+
+@PointClass base(Appearflags, Targetname, Target) size(-8 -8 -8, 8 8 8) color(64 128 64) =
+	func_rotate_door : "Turns a rotate_object between a closed and an open position each time it " +
+	"is triggered, for gates and hatches that swing rather than slide.\n" +
+	"\n" +
+	"Place this entity at the same position as the info_rotate. The angles set here are the open " +
+	"position; the brushes start at zero and turn to those angles."
+[
+	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the rotate_object to " +
+		"turn. The map fails to load without it."
+	angles(string) : "Open Position" : "0 0 0" : "Angles the door turns to when opened, as " +
+		"'pitch yaw roll'. Values beyond 180 degrees force the door to take the long way round."
+	speed(float) : "Movement Time" : "2" : "Seconds taken to swing between closed and open."
+	dmg(integer) : "Crush Damage" : 2 : "Damage dealt to anything the door is blocked by. " +
+		"Negative values are treated as none."
+	group(string) : "Link Group" : : "KTX: name shared with other rotating doors so that they " +
+		"open and close together and reverse as one."
+	sounds(choices) : "Movement Sound" : 1 =
+	[
+		1 : "Medieval - latch and winch"
+		2 : "Metal - airlock"
+		3 : "Base - security door"
+	]
+	spawnflags(flags) =
+	[
+		1 : "Stay open" : 0 : "The door reopens after closing, which stops a door that is " +
+			"triggered once from shutting again when something blocks it."
+	]
+]
+
+@SolidClass base(Appearflags, Targetname, Target, Alpha, Bmodel) color(64 128 64) =
+	func_rotate_train : "Brush model that travels between path_rotate entities and can turn as " +
+	"it goes. It is the centre of rotation for everything it targets.\n" +
+	"\n" +
+	"Give it a name to keep it waiting until it is triggered; without one it starts moving as " +
+	"soon as the map loads."
+[
+	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the object this train " +
+		"carries and rotates. The map fails to load without it."
+	path(target_destination) : "First Stop" : : "REQUIRED: name of the path_rotate the train " +
+		"starts at. The map fails to load if this does not name a path_rotate."
+	speed(integer) : "Speed" : 100 : "How fast the train moves, in units per second."
+	dmg(integer) : "Crush Damage" : 0 : "Damage dealt to anything blocking the train."
+	noise(string) : "Stop Sound" : : "Sound played when the train stops. Defaults to a sound " +
+		"chosen by the movement sound setting."
+	noise1(string) : "Moving Sound" : : "Sound played while the train moves. Defaults to a sound " +
+		"chosen by the movement sound setting."
+	sounds(choices) : "Movement Sound" : 0 =
+	[
+		0 : "Silent"
+		1 : "Ratchet metal"
+	]
+]
+
+@PointClass base(Appearflags, Targetname, Target) size(-8 -8 -8, 8 8 8) color(128 64 0) =
+	path_rotate : "Stop on the route of a func_rotate_train, which also controls how the train " +
+	"turns and behaves on the way to this point."
+[
+	target(target_destination) : "Next Stop" : : "Name of the next path_rotate on the route."
+	rotate(string) : "Rotation Speed" : "0 0 0" : "Degrees per second around each axis while " +
+		"travelling to this stop, as 'pitch yaw roll'. Requires the rotation flag. Use '0 0 0' " +
+		"to stop an existing rotation."
+	angles(string) : "Turn To Angles" : "0 0 0" : "Angles the train turns to while travelling to " +
+		"this stop, as 'pitch yaw roll'. Requires the angles flag. Values below 0 or above 360 " +
+		"force the turn to go a particular way round."
+	speed(float) : "Speed" : : "Speed of the train from this stop onward, in units per second. " +
+		"-1 makes the train jump straight to the next stop after waiting. With the movement time " +
+		"flag set, this is instead the number of seconds the journey takes."
+	wait(float) : "Wait Here" : "0" : "Seconds to pause at this stop before moving on."
+	dmg(integer) : "Damage" : 0 : "Damage the train deals, applied when the damage flag is set."
+	event(target_destination) : "Fire On Arrival" : : "Name of an entity to trigger when the " +
+		"train reaches this stop."
+	message(string) : "Message" : : "Text shown when the train reaches this stop."
+	noise(string) : "Stop Sound" : : "Sound played when the train stops here, overriding the " +
+		"train's own setting."
+	noise1(string) : "Moving Sound" : : "Sound played while the train travels here, overriding " +
+		"the train's own setting."
+	spawnflags(flags) =
+	[
+		1 : "Rotation" : 0 : "The train turns at the rate set in the rotation speed key while " +
+			"travelling to this stop."
+		2 : "Angles" : 0 : "The train turns to the angles set in the angles key while travelling " +
+			"to this stop. Cancels any continuous rotation."
+		4 : "Stop" : 0 : "The train waits here until it is triggered again."
+		8 : "No rotate" : 0 : "The train stops turning while it waits to be triggered."
+		16 : "Damaging" : 0 : "The train hurts what it touches, using the damage key."
+		32 : "Movement time" : 0 : "The speed key is read as the number of seconds the journey " +
+			"takes rather than as a speed."
+		64 : "Set target damage" : 0 : "The damage value is applied to everything the train " +
+			"targets rather than to the train itself."
+	]
+]
+
+@SolidClass base(Appearflags, Targetname, Bmodel) color(0 0 255) = func_movewall : "Invisible " +
+	"collision for a rotating object. Give it the same name as the rotate_object it belongs to " +
+	"and it will travel the same circular path without turning, so that players collide with " +
+	"something where the rotating brushes appear to be.\n" +
+	"\n" +
+	"Because it does not rotate, one movewall can only stand in for a small part of a rotating " +
+	"shape. Cover the volume with several of them."
+[
+	target(target_destination) : "Axis" : : "Name of the info_rotate this wall orbits."
+	dmg(integer) : "Touch Damage" : 0 : "Damage dealt to players who touch it, at most twice a " +
+		"second. Requires the hurts flag."
+	spawnflags(flags) =
+	[
+		1 : "Visible" : 0 : "The brushes are drawn instead of being invisible."
+		2 : "Hurts" : 0 : "Touching the wall injures the player, using the damage key."
+		4 : "Non-solid" : 0 : "The wall does not block movement, which leaves it useful only " +
+			"with the visible flag set."
+	]
+]
