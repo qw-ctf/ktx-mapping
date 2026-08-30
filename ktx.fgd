@@ -1212,3 +1212,429 @@
 @PointClass base(Weapon) model({ "path": ":progs/g_light.mdl" }) =
 	weapon_lightning : "Thunderbolt. Fires a continuous lightning beam, and discharges all " +
 	"remaining cells at once if fired under water." []
+
+
+//=============================================================================
+// Triggers
+//
+// KTX only lets touch triggers fire while a match is running or the server is
+// in practice mode, so a trigger will appear to do nothing on an idle server.
+//=============================================================================
+
+@BaseClass base(Appearflags, Target, Targetname, Race) = Trigger [
+	message(string) : "Message" : : "Text shown to the player who sets the trigger off. A \b " +
+		"character toggles red text for the characters that follow."
+	delay(float) : "Trigger Delay" : "0" : "Seconds to wait between this trigger firing and its " +
+		"target being activated."
+	sounds(choices) : "Activation Sound" : 0 =
+	[
+		0 : "Silent"
+		1 : "Secret discovered"
+		2 : "Talk beep"
+		3 : "Large switch"
+	]
+]
+
+@BaseClass = TriggerTouch [
+	health(integer) : "Health (shootable)" : 0 : "Setting this makes the trigger fire when it is " +
+		"shot rather than when it is touched. Cannot be combined with the not touchable flag."
+	angle(integer) : "Facing Direction" : 0 : "When set, the trigger only fires if the player is " +
+		"facing roughly this way as they touch it. Use 360 for due east."
+	spawnflags(flags) =
+	[
+		1 : "Not touchable" : 0 : "The trigger can only be fired by another entity, never by " +
+			"walking into it. Superseded by trigger_relay."
+	]
+]
+
+@BaseClass base(Appearflags, Targetname, Race) = TriggerPoint [
+	size(string) : "Trigger Size" : "16 16 16" : "KTX: half the size of the trigger volume in " +
+		"units, as 'x y z'. The volume is centred on this entity and extends this far along each " +
+		"axis in both directions, so '16 16 16' gives a box 32 units across."
+]
+
+@SolidClass base(Trigger, TriggerTouch) = trigger_multiple : "Fires its target whenever a player " +
+	"touches it, and can fire again after a delay."
+[
+	wait(float) : "Rearm Delay" : "0.2" : "Seconds before the trigger can fire again."
+]
+
+@SolidClass base(Trigger, TriggerTouch) = trigger_once : "Fires its target the first time a " +
+	"player touches it, then never again." []
+
+@PointClass base(Trigger) size(-8 -8 -8, 8 8 8) color(128 0 128) = trigger_relay : "Fires its " +
+	"target when another entity fires it. Has no volume and cannot be touched, which makes it " +
+	"the usual way to add a delay or a message to a chain of triggers." []
+
+@SolidClass base(Trigger, TriggerTouch) = trigger_secret : "Counts as a secret when a player " +
+	"first touches it, and fires its target. Adds one to the map's secret total."
+[
+	sounds(choices) : "Discovery Sound" : 1 =
+	[
+		1 : "Secret discovered"
+		2 : "Talk beep"
+	]
+]
+
+@SolidClass base(Trigger, TriggerTouch) = trigger_onlyregistered : "Fires its target only for " +
+	"players running the registered version of Quake. Every modern copy is registered, so this " +
+	"is effectively an ordinary trigger." []
+
+@SolidClass base(Appearflags, Target, Targetname, Race) = trigger_teleport : "Teleports whatever " +
+	"touches it to an info_teleport_destination. Giving the teleporter a name stops it working " +
+	"on touch until something fires it."
+[
+	ktx_votemap(string) : "Vote Map" : : "KTX: name of a map. While no match is in progress, a " +
+		"player who steps into this teleporter casts a vote for that map. This is how map " +
+		"selection rooms are built."
+	spawnflags(flags) =
+	[
+		1 : "Players only" : 0 : "Only players are teleported. Other entities, including " +
+			"grenades, pass through."
+		2 : "Silent" : 0 : "Suppresses the humming sound the teleporter otherwise emits."
+	]
+]
+
+@PointClass base(TriggerPoint, Target) size(-16 -16 -16, 16 16 16) =
+	trigger_custom_teleport : "KTX: teleporter defined by a point and a size rather than by " +
+	"brushes, which allows a teleport volume to be placed without building geometry for it. " +
+	"Behaves exactly like trigger_teleport once the map loads."
+[
+	spawnflags(flags) =
+	[
+		1 : "Players only" : 0 : "Only players are teleported."
+		2 : "Silent" : 0 : "Suppresses the humming sound."
+	]
+]
+
+@PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 32) color(128 0 128) =
+	info_teleport_destination : "Exit point of a teleporter. The direction this entity faces is " +
+	"the direction players leave the teleporter looking. KTX raises it 27 units on map load so " +
+	"that a destination placed on the floor puts the player's feet on the floor."
+[
+	angles(string) : "Exit Angles" : "0 0 0" : "Direction players face on arrival, as " +
+		"'pitch yaw roll'."
+	targetname(target_source) : "Name" : : "REQUIRED: name matching the teleporter's target key. " +
+		"The map fails to load without it."
+]
+
+@SolidClass base(Appearflags, Targetname, Race) = trigger_push : "Pushes whatever touches it in " +
+	"the direction it faces, which is how wind tunnels and jump pads are built. Grenades are " +
+	"pushed as well as players."
+[
+	angle(integer) : "Push Direction" : 0 : "Direction to push, in degrees. Use -1 for straight " +
+		"up and -2 for straight down."
+	speed(integer) : "Push Speed" : 1000 : "Strength of the push."
+	spawnflags(flags) =
+	[
+		1 : "Push once" : 0 : "The trigger removes itself after pushing something once."
+	]
+]
+
+@PointClass base(TriggerPoint) size(-16 -16 -16, 16 16 16) =
+	trigger_custom_push : "KTX: push trigger defined by a point and a size rather than by " +
+	"brushes. Behaves exactly like trigger_push once the map loads."
+[
+	angle(integer) : "Push Direction" : 0 : "Direction to push, in degrees. Use -1 for straight " +
+		"up and -2 for straight down."
+	speed(integer) : "Push Speed" : 1000 : "Strength of the push."
+	spawnflags(flags) =
+	[
+		1 : "Push once" : 0 : "The trigger removes itself after pushing something once."
+	]
+]
+
+@SolidClass base(Appearflags, Targetname, Race) = trigger_hurt : "Injures whatever touches it. " +
+	"After hurting something the trigger goes quiet for one second, so standing in it costs the " +
+	"stated damage about once a second."
+[
+	dmg(integer) : "Damage" : 5 : "Damage dealt each time the trigger fires."
+]
+
+@SolidClass base(Appearflags, Targetname, Race) = trigger_heal : "KTX: heals players who walk " +
+	"into it, up to a limit, with a pause between one player's heals. Inactive while the server " +
+	"is waiting for a match to start."
+[
+	heal_amount(integer) : "Heal Amount" : 5 : "KTX: health restored each time a player is healed."
+	wait(float) : "Heal Interval" : "1" : "KTX: seconds a player must wait between heals."
+	noise(string) : "Heal Sound" : "items/r_item1.wav" : "KTX: sound played each time a player " +
+		"is healed."
+]
+
+@SolidClass base(Appearflags, Targetname, Race) = trigger_monsterjump : "Makes walking monsters " +
+	"that touch it leap in the direction it faces. Has no effect on players."
+[
+	angle(integer) : "Jump Direction" : 0 : "Direction to throw monsters, in degrees. Use 360 " +
+		"for due east."
+	speed(integer) : "Forward Speed" : 200 : "How hard monsters are thrown forwards."
+	height(integer) : "Jump Height" : 200 : "How hard monsters are thrown upwards."
+]
+
+@PointClass base(TriggerPoint) size(-16 -16 -16, 16 16 16) =
+	trigger_custom_monsterjump : "KTX: monster jump trigger defined by a point and a size rather " +
+	"than by brushes. Behaves exactly like trigger_monsterjump once the map loads."
+[
+	angle(integer) : "Jump Direction" : 0 : "Direction to throw monsters, in degrees."
+	speed(integer) : "Forward Speed" : 200 : "How hard monsters are thrown forwards."
+	height(integer) : "Jump Height" : 200 : "How hard monsters are thrown upwards."
+]
+
+@SolidClass base(Appearflags) = trigger_setskill : "Sets the server's skill level when a player " +
+	"touches it, as used on the original start map. KTX removes this entity in deathmatch."
+[
+	message(choices) : "Skill Level" : "1" =
+	[
+		"0" : "Easy"
+		"1" : "Normal"
+		"2" : "Hard"
+		"3" : "Nightmare"
+	]
+]
+
+@PointClass base(Appearflags, Target, Targetname) size(-8 -8 -8, 8 8 8) color(128 0 128) =
+	trigger_counter : "Fires its target only after being triggered a set number of times. Acts " +
+	"as a counter for switches or buttons that must all be activated."
+[
+	count(integer) : "Activations Required" : 2 : "How many times this entity must be triggered " +
+		"before it fires its target."
+	delay(float) : "Trigger Delay" : : "Seconds to wait before firing the target."
+	message(string) : "Message" : : "Text shown when the counter completes."
+	spawnflags(flags) =
+	[
+		1 : "No messages" : 0 : "Suppresses the automatic messages counting down the remaining " +
+			"activations."
+	]
+]
+
+
+//=============================================================================
+// Doors, platforms and other movers
+//=============================================================================
+
+@BaseClass = DoorSounds [
+	sounds(choices) : "Movement Sound" : 0 =
+	[
+		0 : "Silent"
+		1 : "Stone"
+		2 : "Machine"
+		3 : "Stone chain"
+		4 : "Screechy metal"
+	]
+]
+
+@SolidClass base(Appearflags, Target, Targetname, Angle, Alpha, Bmodel, DoorSounds) =
+	func_door : "Sliding door. Opens in the direction it faces when a player touches it, shoots " +
+	"it or triggers it, and closes again after a delay.\n" +
+	"\n" +
+	"Doors that touch each other are linked into one, so that opening any part opens the whole " +
+	"door. The key sounds a locked door plays are chosen by the worldtype set in worldspawn."
+[
+	speed(integer) : "Speed" : 100 : "How fast the door moves, in units per second."
+	lip(integer) : "Lip" : 8 : "How many units of the door remain visible when it is fully open."
+	wait(float) : "Wait Before Closing" : "3" : "Seconds the door stays open. -1 leaves it open " +
+		"permanently."
+	dmg(integer) : "Crush Damage" : 2 : "Damage dealt to anything blocking the door."
+	health(integer) : "Health (shootable)" : 0 : "Setting this makes the door open when shot " +
+		"rather than when touched."
+	message(string) : "Message" : : "Text shown to a player who opens the door."
+	spawnflags(flags) =
+	[
+		1 : "Starts open" : 0 : "The door begins in its open position and moves the other way. " +
+			"Use this rather than building the door already open, so that its closed position is " +
+			"where the brushwork is."
+		4 : "Do not link" : 0 : "Stops this door being linked to touching doors."
+		8 : "Gold key required" : 0 : "The door cannot be opened without the map's second key."
+		16 : "Silver key required" : 0 : "The door cannot be opened without the map's first key."
+		32 : "Toggle" : 0 : "Each trigger reverses the door instead of opening and closing it " +
+			"automatically."
+	]
+]
+
+@SolidClass base(Appearflags, Target, Targetname, Alpha, Bmodel) = func_door_secret : "Hidden " +
+	"door that slides aside in two stages when opened, revealing a passage. Opens when shot or " +
+	"triggered."
+[
+	angle(integer) : "Direction Of Second Move" : 0 : "Direction the door travels on the second " +
+		"stage of its movement, in degrees."
+	t_width(integer) : "First Move Distance" : 0 : "How far the door moves sideways on the first " +
+		"stage. Defaults to the width of the door."
+	t_length(integer) : "Second Move Distance" : 0 : "How far the door moves back on the second " +
+		"stage. Defaults to the length of the door."
+	wait(float) : "Wait Before Closing" : "2" : "Seconds the door stays open. -1 leaves it open " +
+		"permanently."
+	dmg(integer) : "Crush Damage" : 2 : "Damage dealt to anything blocking the door."
+	message(string) : "Message" : : "Text shown to a player who opens the door."
+	sounds(choices) : "Movement Sound" : 3 =
+	[
+		1 : "Medieval"
+		2 : "Metal"
+		3 : "Base"
+	]
+	spawnflags(flags) =
+	[
+		1 : "Open once" : 0 : "The door stays open once opened."
+		2 : "Move left first" : 0 : "The first stage moves left instead of right."
+		4 : "Move down first" : 0 : "The first stage moves down instead of sideways."
+		8 : "Not shootable" : 0 : "The door ignores gunfire and must be triggered."
+		16 : "Always shootable" : 0 : "The door can be shot open even when it is also triggered."
+	]
+]
+
+@SolidClass base(Appearflags, Target, Targetname, Angle, Alpha, Bmodel) = func_button : "Button " +
+	"that presses inward when used and fires its target. Returns to its resting position after a " +
+	"delay, or stays in once pressed."
+[
+	speed(integer) : "Speed" : 40 : "How fast the button moves, in units per second."
+	lip(integer) : "Lip" : 4 : "How many units of the button remain visible when fully pressed."
+	wait(float) : "Wait Before Resetting" : "1" : "Seconds before the button pops back out. -1 " +
+		"leaves it pressed permanently."
+	delay(float) : "Trigger Delay" : : "Seconds to wait between the button being pressed and its " +
+		"target firing."
+	health(integer) : "Health (shootable)" : 0 : "Setting this makes the button fire when shot " +
+		"rather than when touched."
+	message(string) : "Message" : : "Text shown to the player who presses the button."
+	sounds(choices) : "Press Sound" : 0 =
+	[
+		0 : "Steam metal"
+		1 : "Wooden clunk"
+		2 : "Metallic click"
+		3 : "In-out"
+	]
+]
+
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_plat : "Platform that lowers when " +
+	"a player steps onto it and rises again afterwards, or waits at the bottom until triggered."
+[
+	speed(integer) : "Speed" : 150 : "How fast the platform moves, in units per second."
+	height(integer) : "Travel Distance" : 0 : "How far the platform travels, in units. Left at 0 " +
+		"it works this out from the height of the brushes and the lip."
+	dmg(integer) : "Crush Damage" : 2 : "Damage dealt to anything blocking the platform."
+	sounds(choices) : "Movement Sound" : 1 =
+	[
+		0 : "Silent"
+		1 : "Base fast"
+		2 : "Chain slow"
+	]
+	spawnflags(flags) =
+	[
+		1 : "Low trigger volume" : 0 : "Uses a smaller trigger area, for platforms in cramped " +
+			"spaces where the normal one would be set off too easily."
+	]
+]
+
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_train : "Platform that travels " +
+	"between path_corner entities, carrying players with it. It starts at the path_corner it " +
+	"targets, and moves continuously unless it is triggered into motion."
+[
+	target(target_destination) : "First Stop" : : "REQUIRED: name of the path_corner the train " +
+		"starts at and moves towards first."
+	speed(integer) : "Speed" : 100 : "How fast the train moves, in units per second."
+	dmg(integer) : "Crush Damage" : 2 : "Damage dealt to anything blocking the train."
+	sounds(choices) : "Movement Sound" : 1 =
+	[
+		0 : "Silent"
+		1 : "Ratchet metal"
+	]
+]
+
+@PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8) color(0 255 255) =
+	path_corner : "Waypoint on the route of a func_train, and a patrol point that monsters walk " +
+	"between."
+[
+	target(target_destination) : "Next Stop" : : "Name of the next path_corner on the route."
+	wait(float) : "Wait Here" : "0" : "Seconds to pause at this corner before moving on. -1 " +
+		"stops the train here until it is triggered again."
+]
+
+@PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8)
+	model({ "path": ":progs/teleport.mdl" }) =
+	misc_teleporttrain : "Flying spiked ball that travels between path_corner entities. Used in " +
+	"the original game as a moving teleporter destination."
+[
+	target(target_destination) : "First Stop" : : "REQUIRED: name of the path_corner it starts " +
+		"at and moves towards first."
+	speed(integer) : "Speed" : 100 : "How fast it moves, in units per second."
+	dmg(integer) : "Crush Damage" : 2 : "Damage dealt to anything it is blocked by."
+]
+
+
+//=============================================================================
+// Static brush entities
+//=============================================================================
+
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_wall : "Solid brush model that " +
+	"stays where it is put. Being an entity rather than world geometry, it does not seal the map " +
+	"and can be made transparent or excluded from lighting effects. If its texture has animation " +
+	"frames, triggering the wall switches between them." []
+
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_illusionary : "Brush model with " +
+	"no collision. Players, monsters and shots pass straight through it, while it still draws " +
+	"and still receives lighting. Suited to decoration that should not get in the way." []
+
+@SolidClass base(Appearflags, Alpha, Bmodel) = func_episodegate : "Barrier that removes itself " +
+	"once the player carries the rune for a matching episode, opening the way beyond it. Used on " +
+	"the original start map."
+[
+	spawnflags(flags) =
+	[
+		1 : "Episode 1" : 1
+		2 : "Episode 2" : 0
+		4 : "Episode 3" : 0
+		8 : "Episode 4" : 0
+	]
+]
+
+@SolidClass base(Appearflags, Alpha, Bmodel) = func_bossgate : "Barrier that removes itself once " +
+	"the player carries all four episode runes, opening the way to the final level. Used on the " +
+	"original start map." []
+
+
+//=============================================================================
+// KTX brush entities
+//=============================================================================
+
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob : "KTX: brush model that " +
+	"drifts gently back and forth, for floating platforms and hanging objects.\n" +
+	"\n" +
+	"This entity came from two different mods that gave its flags opposite meanings, and KTX " +
+	"implements neither cleanly: setting bit 1 or bit 4 deletes the entity when the map loads, " +
+	"and bit 2 does nothing. Leave the spawnflags at zero."
+[
+	angle(integer) : "Movement Direction" : 0 : "Direction the entity drifts, in degrees. Use 360 " +
+		"for due east, -1 for straight up and -2 for straight down."
+	height(integer) : "Movement Distance" : 8 : "How far the entity travels from its resting " +
+		"position, in units."
+	count(integer) : "Cycle Time" : 2 : "Seconds between changes of direction. Must be at least 1."
+	waitmin(float) : "Acceleration Curve" : "1" : "Shapes the start of each movement. 1 moves at " +
+		"a steady rate; higher values ease in more sharply."
+	waitmin2(float) : "Deceleration Curve" : "0.75" : "Shapes the end of each movement, easing " +
+		"the entity to a halt."
+	delay(float) : "Start Offset" : "0" : "Seconds to wait before starting to move, which lets " +
+		"several bobbing entities run out of step with one another. A negative value picks a " +
+		"random offset."
+]
+
+@SolidClass base(Appearflags, Targetname, Target, Bmodel) = func_laser : "KTX: damaging laser " +
+	"barrier that can be switched on and off, used to block a route or to hurt players who cross " +
+	"it. The brush flickers around its set opacity while active.\n" +
+	"\n" +
+	"A laser that is switched off is moved far out of the map rather than hidden, so it cannot be " +
+	"touched while off. Damage is dealt at most three times a second to any one player."
+[
+	dmg(integer) : "Damage" : 1 : "Damage dealt on touch. Set to -1 for a laser that blocks and " +
+		"startles without hurting."
+	alpha(float) : "Opacity" : "0.5" : "Opacity of the laser, from 0.0 to 1.0. The drawn opacity " +
+		"varies continuously within about 20 percent of this value to give the beam a flicker."
+	noise(string) : "Switch On Sound" : "buttons/switch02.wav" : "KTX: sound played when the " +
+		"laser is switched on."
+	noise1(string) : "Switch Off Sound" : "buttons/switch04.wav" : "KTX: sound played when the " +
+		"laser is switched off."
+	noise2(string) : "Damage Sound" : "misc/null.wav" : "KTX: sound played when the laser hurts " +
+		"somebody. Silent unless a sound is set."
+	spawnflags(flags) =
+	[
+		1 : "Start off" : 0 : "The laser is inactive until something switches it on."
+		2 : "Solid" : 0 : "The laser blocks movement and shots while it is on, rather than only " +
+			"hurting what passes through it."
+	]
+]
