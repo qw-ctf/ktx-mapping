@@ -501,10 +501,16 @@
 ]
 
 @BaseClass = WorldLightGrid [
-	_world_units_per_luxel(float) : "Lightmap Density" : "0" : "COMPILER (light): size in units " +
-		"of one lightmap pixel, writing a DECOUPLED_LM lump so lightmap resolution is " +
-		"independent of texture scale. Requires an engine that supports the lump. 0 disables it. " +
-		"Range 0 to 1024."
+	_world_units_per_luxel(float) : "Lightmap Density" : "0" : "COMPILER (light): how many units " +
+		"of the world one pixel of the lightmap covers.<br><br>" +
+		"Quake bakes lighting at one lightmap pixel per 16 units, which is coarse enough that " +
+		"shadow edges are visibly blocky and a small light casts a soft smudge rather than a " +
+		"shadow. Setting this to 8 doubles the resolution and 4 doubles it again, which sharpens " +
+		"shadows considerably.<br><br>" +
+		"The cost is size and compile time, both of which rise steeply as the number falls, so " +
+		"this is worth applying to a map that needs it rather than as a habit. It also writes " +
+		"the lighting to a BSPX lump, so an engine that does not understand the lump falls back " +
+		"to the ordinary lightmap. 0 leaves the lighting at Quake's own resolution."
 	_lightmap_scale(integer) : "Forced Lightmap Scale" : 0 : "COMPILER (light): forces every " +
 		"surface to this lightmap scale. Quake's own scale is 16, and vanilla engines accept " +
 		"nothing else. 0 leaves the scale alone."
@@ -703,8 +709,10 @@
 	_minlight_exclude(string) : "Minimum Light Exclusion" : : "COMPILER (qbsp): name of a texture " +
 		"that is exempt from minimum light on this entity. Nine further exclusions may be added " +
 		"as <code>_minlight_exclude1</code> through <code>_minlight_exclude9</code>."
-	_maxlight(float) : "Maximum Light" : : "COMPILER: clamps every face of this entity to at most " +
-		"this light level. Range 0 to 510."
+	_maxlight(float) : "Maximum Light" : : "COMPILER: a ceiling on the lighting for this entity " +
+		"alone, so no part of it burns out to featureless white.<br><br>" +
+		"Useful for a brush model that has to sit close to a bright light and still show its " +
+		"texture. Leave it unset for no ceiling."
 	_lightcolorscale(float) : "Light Saturation" : "1.0" : "COMPILER: how much colour the lighting " +
 		"on this entity keeps. 1.0 is full colour and 0.0 renders it in greyscale. Range 0 to 1."
 	_lightignore(choices) : "Ignore Lighting" : 0 : "COMPILER: makes this entity ignore every " +
