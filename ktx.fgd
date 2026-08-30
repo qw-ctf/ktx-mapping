@@ -682,11 +682,14 @@
 //=============================================================================
 
 @BaseClass = BrushCompiler [
-	_minlight(float) : "Minimum Light" : : "COMPILER: light level applied to every face of this " +
-		"entity, so that no part of it is fully black. -1 excludes the entity from the map-wide " +
-		"minimum light instead."
-	_minlight_color(color255) : "Minimum Light Colour" : : "COMPILER: colour of this entity's " +
-		"minimum light. Alias: '_mincolor'."
+	_minlight(float) : "Minimum Light" : : "COMPILER: a floor under the lighting on this entity " +
+		"alone, so that no part of it goes fully black.<br><br>" +
+		"Useful for something that has to stay readable wherever it ends up, such as a door in " +
+		"an unlit corridor or a platform that travels into shadow. Set it to -1 to do the " +
+		"opposite and exclude the entity from the map-wide minimum light, letting it fall darker " +
+		"than its surroundings."
+	_minlight_color(color255) : "Minimum Light Colour" : : "COMPILER: colour of this entity's own " +
+		"minimum light. Alias: <code>_mincolor</code>."
 	_minlight_exclude(string) : "Minimum Light Exclusion" : : "COMPILER (qbsp): name of a texture " +
 		"that is exempt from minimum light on this entity. Nine further exclusions may be added " +
 		"as '_minlight_exclude1' through '_minlight_exclude9'."
@@ -694,13 +697,26 @@
 		"this light level. Range 0 to 510."
 	_lightcolorscale(float) : "Light Saturation" : "1.0" : "COMPILER: how much colour the lighting " +
 		"on this entity keeps. 1.0 is full colour and 0.0 renders it in greyscale. Range 0 to 1."
-	_lightignore(choices) : "Ignore Lighting" : 0 : "COMPILER: makes this entity ignore all real " +
-		"lighting and take only its minimum light, giving it a flat unlit appearance." =
+	_lightignore(choices) : "Ignore Lighting" : 0 : "COMPILER: makes this entity ignore every " +
+		"light in the map and take only its minimum light, so it renders at one flat " +
+		"level.<br><br>" +
+		"Combined with a minimum light value this pins a surface to a chosen brightness whatever " +
+		"happens around it, which suits a screen, a sign or anything meant to look self-lit. It " +
+		"also removes the entity from any lighting variation, so it will look conspicuously flat " +
+		"beside surfaces that are properly lit." =
 	[
 		0 : "Receive all lighting"
 		1 : "Receive only minimum light"
 	]
-	_shadow(choices) : "Shadow Casting" : 0 : "COMPILER: whether this entity casts shadows." =
+	_shadow(choices) : "Shadow Casting" : 0 : "COMPILER: whether this entity blocks light and " +
+		"casts a shadow.<br><br>" +
+		"Brush entities do not cast shadows by default, because a door that cast one would leave " +
+		"its shadow behind when it opened. Lighting is baked once at compile time and cannot " +
+		"follow anything that moves, so a shadow always stays where the entity was when the map " +
+		"was built.<br><br>" +
+		"That makes this safe to turn on for brush entities that never move, and a mistake for " +
+		"ones that do. Turning it off with -1 is worth doing for a decorative entity that " +
+		"happens to sit in front of a light and is darkening the room behind it." =
 	[
 		-1 : "Cast no shadows at all"
 		0 : "Default for this entity type"
@@ -719,18 +735,28 @@
 		-1 : "This entity emits no bounce light"
 		0 : "Follow the worldspawn '_bounce' setting"
 	]
-	_phong(choices) : "Phong Shading" : 0 : "COMPILER: smooths lighting across adjacent faces of " +
-		"this entity, so that a faceted curve is lit as a smooth one. Enabling it without an " +
-		"angle uses 89 degrees." =
+	_phong(choices) : "Phong Shading" : 0 : "COMPILER: smooths the lighting across the joins " +
+		"between this entity's faces, so that a curve built from flat panels is lit as though it " +
+		"were genuinely round.<br><br>" +
+		"This is what turns a faceted pipe, arch or column from something that reads as a stack " +
+		"of panels into something that reads as a curve. It changes only the lighting, not the " +
+		"geometry, so the silhouette stays as angular as it was built.<br><br>" +
+		"Turning it on without setting an angle smooths any join up to 89 degrees, which will " +
+		"round off corners that were meant to stay sharp. Setting an angle is usually better." =
 	[
 		0 : "Off"
 		1 : "On"
 	]
-	_phong_angle(float) : "Phong Smoothing Angle" : : "COMPILER: faces meeting at this angle or " +
-		"less are smoothed together. Setting it enables phong shading on this entity."
-	_phong_angle_concave(float) : "Phong Angle (Concave Joints)" : : "COMPILER (qbsp): separate " +
-		"smoothing angle used where two faces meet in a concave joint, letting outside curves " +
-		"smooth while inside corners stay sharp."
+	_phong_angle(float) : "Phong Smoothing Angle" : : "COMPILER: how steep a join between two " +
+		"faces can be and still be smoothed, in degrees.<br><br>" +
+		"Faces meeting at this angle or less blend together; anything sharper keeps its edge. " +
+		"For a curve made of panels, set it a little above the angle between neighbouring panels " +
+		"and below the angle where the curve meets anything else. Around 45 is a good starting " +
+		"point. Setting this turns phong shading on by itself."
+	_phong_angle_concave(float) : "Phong Angle (Inside Corners)" : : "COMPILER (qbsp): a separate " +
+		"smoothing angle for joins that fold inwards.<br><br>" +
+		"Lets an outside curve smooth while the inside corners where it meets a floor or wall " +
+		"stay crisp, which is often what looks right on a pipe running along a surface."
 	_phong_group(integer) : "Phong Group" : 0 : "COMPILER (qbsp): faces are only smoothed against " +
 		"other faces carrying the same group number. Use it to keep two surfaces that touch from " +
 		"smoothing into each other."
