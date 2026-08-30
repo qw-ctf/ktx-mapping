@@ -454,3 +454,517 @@
 			"mode removes entities that are not part of the route."
 	]
 ]
+
+
+//=============================================================================
+// Compiler brush keys
+//
+// These keys are read while the map is compiled and are stripped from the
+// finished BSP, so the server never sees them.
+//
+// They come in two groups. BrushCompiler keys are baked into the surfaces by
+// qbsp and work on any brush entity, including the detail and group entities
+// whose brushes are merged into the world. BrushModel keys are read by light
+// from the entity itself, and therefore only work on entities that survive
+// compilation as their own brush model.
+//=============================================================================
+
+@BaseClass = BrushCompiler [
+	_minlight(float) : "Minimum Light" : : "COMPILER: light level applied to every face of this " +
+		"entity, so that no part of it is fully black. -1 excludes the entity from the map-wide " +
+		"minimum light instead."
+	_minlight_color(color255) : "Minimum Light Colour" : : "COMPILER: colour of this entity's " +
+		"minimum light. Alias: '_mincolor'."
+	_minlight_exclude(string) : "Minimum Light Exclusion" : : "COMPILER (qbsp): name of a texture " +
+		"that is exempt from minimum light on this entity. Nine further exclusions may be added " +
+		"as '_minlight_exclude2' through '_minlight_exclude9'."
+	_maxlight(float) : "Maximum Light" : : "COMPILER: clamps every face of this entity to at most " +
+		"this light level. Range 0 to 510."
+	_lightcolorscale(float) : "Light Saturation" : "1.0" : "COMPILER: how much colour the lighting " +
+		"on this entity keeps. 1.0 is full colour and 0.0 renders it in greyscale. Range 0 to 1."
+	_lightignore(choices) : "Ignore Lighting" : 0 : "COMPILER: makes this entity ignore all real " +
+		"lighting and take only its minimum light, giving it a flat unlit appearance." =
+	[
+		0 : "Receive all lighting"
+		1 : "Receive only minimum light"
+	]
+	_shadow(choices) : "Shadow Casting" : 0 : "COMPILER: whether this entity casts shadows." =
+	[
+		-1 : "Cast no shadows at all"
+		0 : "Default for this entity type"
+		1 : "Cast shadows on the world, itself and other brush models"
+	]
+	_dirt(choices) : "Ambient Occlusion" : 0 : "COMPILER: whether the map-wide ambient occlusion " +
+		"applies to this entity." =
+	[
+		-1 : "Never occlude this entity"
+		0 : "Follow the worldspawn '_dirt' setting"
+		1 : "Occlude this entity"
+	]
+	_bounce(choices) : "Bounce Light Emission" : 0 : "COMPILER: whether light bounces off this " +
+		"entity onto its surroundings." =
+	[
+		-1 : "This entity emits no bounce light"
+		0 : "Follow the worldspawn '_bounce' setting"
+	]
+	_phong(choices) : "Phong Shading" : 0 : "COMPILER: smooths lighting across adjacent faces of " +
+		"this entity, so that a faceted curve is lit as a smooth one. Enabling it without an " +
+		"angle uses 89 degrees." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	_phong_angle(float) : "Phong Smoothing Angle" : : "COMPILER: faces meeting at this angle or " +
+		"less are smoothed together. Setting it enables phong shading on this entity."
+	_phong_angle_concave(float) : "Phong Angle (Concave Joints)" : : "COMPILER (qbsp): separate " +
+		"smoothing angle used where two faces meet in a concave joint, letting outside curves " +
+		"smooth while inside corners stay sharp."
+	_phong_group(integer) : "Phong Group" : 0 : "COMPILER (qbsp): faces are only smoothed against " +
+		"other faces carrying the same group number. Use it to keep two surfaces that touch from " +
+		"smoothing into each other."
+	_light_alpha(float) : "Shadow Opacity" : : "COMPILER (qbsp): how much light this entity blocks, " +
+		"from 0.0 for a shadow that is not cast at all to 1.0 for a solid shadow. Intermediate " +
+		"values give the coloured, partial shadow of stained glass. Range 0 to 1."
+	_light_twosided(choices) : "Two-sided Lighting" : 0 : "COMPILER (qbsp): lets faces receive " +
+		"light striking them from behind. On by default for liquid surfaces." =
+	[
+		0 : "Light the front face only"
+		1 : "Light both sides"
+	]
+	_object_channel_mask(integer) : "Lighting Channel Mask" : 1 : "COMPILER: bitmask of the " +
+		"lighting channels this entity takes part in. A light only affects an entity that shares " +
+		"one of its channels. Setting this to anything other than 1 also turns shadow casting on " +
+		"and stops the entity emitting bounce light."
+	_world_units_per_luxel(float) : "Lightmap Density" : : "COMPILER (qbsp): size in units of one " +
+		"lightmap pixel on this entity, overriding the map-wide setting. Requires an engine that " +
+		"reads the DECOUPLED_LM lump."
+	_surflight_rescale(choices) : "Surface Light Rescaling" : 1 : "COMPILER (qbsp): rescales the " +
+		"emission of this entity's surface lights by surface area. On by default except on sky." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	_surflight_color(color255) : "Surface Light Colour" : : "COMPILER (qbsp): overrides the colour " +
+		"this entity's emissive surfaces give off, which is otherwise taken from the texture."
+	_surflight_style(integer) : "Surface Light Style" : 0 : "COMPILER (qbsp): animated light style " +
+		"the light from this entity's emissive surfaces uses."
+	_surflight_targetname(string) : "Surface Light Switch Name" : : "COMPILER (qbsp): makes the " +
+		"light from this entity's emissive surfaces switchable under this name."
+	_surflight_group(integer) : "Surface Light Group" : 0 : "COMPILER (qbsp): only surface light " +
+		"templates carrying the same group number make this entity's surfaces emit light."
+	_surflight_minlight_scale(float) : "Surface Light Self-Illumination" : "1.0" : "COMPILER: " +
+		"scales the minimum light applied to this entity's own emissive surfaces, so a light " +
+		"fixture does not render black."
+	_surflight_atten(float) : "Surface Light Attenuation" : "1.0" : "COMPILER: scales how quickly " +
+		"the light from this entity's emissive surfaces falls off with distance."
+	_mirrorinside(choices) : "Mirror Inside Faces" : 0 : "COMPILER (qbsp): generates faces looking " +
+		"inward as well as outward, so the inside of the brush is drawn when the player is " +
+		"inside it." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	_noclipfaces(choices) : "Keep Overlapping Faces" : 0 : "COMPILER (qbsp): keeps the faces where " +
+		"this entity's brushes overlap other brushes of the same content type, instead of " +
+		"clipping them away." =
+	[
+		0 : "Clip overlapping faces away"
+		1 : "Keep overlapping faces"
+	]
+	_chop_order(integer) : "Face Chop Order" : 0 : "COMPILER (qbsp): controls which brush wins " +
+		"where two brushes overlap and their faces have to be divided. Lower values are cut by " +
+		"higher ones. Replaces the deprecated '_chop' key."
+	_noambient(choices) : "Suppress Ambient Sounds" : 0 : "COMPILER (vis): stops this entity's " +
+		"water, slime, lava and sky brushes contributing to the automatic ambient sounds the " +
+		"engine plays." =
+	[
+		0 : "Contribute ambient sound"
+		1 : "Silent"
+	]
+	_litwater(choices) : "Lit Liquid Surfaces" : 1 : "COMPILER (qbsp): subdivides this entity's " +
+		"liquid surfaces so they receive lightmaps, overriding the compiler's own setting. " +
+		"Alias: '_splitturb'." =
+	[
+		0 : "Fullbright liquids"
+		1 : "Lit liquids"
+	]
+]
+
+@BaseClass = BrushModel [
+	_minlight_mottle(choices) : "Minimum Light Mottling" : 0 : "COMPILER (light): breaks up the " +
+		"flatness of this entity's minimum light with a subtle noise pattern." =
+	[
+		0 : "Flat"
+		1 : "Mottled"
+	]
+	_shadowself(choices) : "Self Shadowing" : 0 : "COMPILER (light): lets this entity cast shadows " +
+		"onto itself without casting them onto anything else. Overridden by '_shadow'. " +
+		"Alias: '_selfshadow'." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	_shadowworldonly(choices) : "Shadow On World Only" : 0 : "COMPILER (light): lets this entity " +
+		"cast shadows onto the world but not onto itself or other brush models. Overridden by " +
+		"'_shadow'." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	_switchableshadow(choices) : "Switchable Shadow" : 0 : "COMPILER (light): allows this " +
+		"entity's shadow to be turned on and off during play. light assigns a light style for the " +
+		"shadow and writes it back into the 'switchshadstyle' key, which mod code then animates. " +
+		"Entities sharing a targetname share one style. Only unstyled light is blocked." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	switchshadstyle(integer) : "Switchable Shadow Style" : 0 : "COMPILER (light): light style " +
+		"number allocated for this entity's switchable shadow. light writes this key itself; set " +
+		"it by hand only to pin a specific style."
+	_autominlight(choices) : "Automatic Minimum Light" : 0 : "COMPILER (light): samples the light " +
+		"actually reaching the entity and uses it as the minimum light, so an unlit underside " +
+		"picks up its surroundings rather than a flat value." =
+	[
+		-1 : "Off"
+		0 : "Apply to occluded surfaces only"
+		1 : "Apply to all surfaces"
+	]
+	_autominlight_target(string) : "Automatic Minimum Light Source" : : "COMPILER (light): " +
+		"targetname of an entity whose position is sampled for the automatic minimum light, " +
+		"instead of sampling at the entity itself."
+]
+
+@BaseClass base(BrushCompiler, BrushModel) = Bmodel []
+
+
+//=============================================================================
+// Compile-time brush entities
+//
+// These entities exist only while the map is compiled. Their brushes are
+// merged into the world and the entities themselves never reach the server.
+//=============================================================================
+
+@SolidClass base(BrushCompiler) = func_detail : "Brush that vis ignores, which can cut map " +
+	"compile times dramatically. Detail brushes are solid and do split the world faces behind " +
+	"them, but they do not block visibility, so they never help vis close off parts of the map.\n" +
+	"\n" +
+	"Detail brushes do not seal the map against the void. The shell of the map must be built " +
+	"from ordinary world brushes." []
+
+@SolidClass base(BrushCompiler) = func_detail_illusionary : "Detail brush with no collision, " +
+	"which players, monsters and shots pass straight through. It does not split the world faces " +
+	"behind it and casts no shadow unless '_shadow' is set to 1. Suited to hanging vines, " +
+	"cobwebs and similar decoration." []
+
+@SolidClass base(BrushCompiler) = func_detail_wall : "Detail brush that does not split the world " +
+	"faces behind it, at the cost of some overdraw. Suited to trim and decoration sitting " +
+	"against a wall or floor that would otherwise carve up a large flat face.\n" +
+	"\n" +
+	"A world face completely covered by one of these is still clipped away, so this is not " +
+	"suitable for fence textures. Use func_detail_fence for those." []
+
+@SolidClass base(BrushCompiler) = func_detail_fence : "Detail brush that never clips away the " +
+	"world faces behind it, so surfaces seen through its transparent texture are preserved. " +
+	"Suited to grates, railings and fences that are solid and stop shots." []
+
+@SolidClass base(BrushCompiler) = func_group : "Groups brushes together for organisation in the " +
+	"editor and to apply compiler keys to all of them at once. The brushes are treated exactly " +
+	"as world brushes and the grouping has no effect in game." []
+
+@SolidClass base(BrushCompiler) = func_illusionary_visblocker : "Brush with no collision that " +
+	"still blocks visibility. Players and shots pass through it while vis treats it as opaque, " +
+	"which allows a visually open doorway to close off the room beyond it." []
+
+@SolidClass base(BrushCompiler, Targetname) = func_areaportal : "Q2 ONLY: closes off visibility " +
+	"between two areas of the map while the door filling it is shut. Must consist of exactly one " +
+	"brush, placed to fill the doorway. Has no effect in a Quake map." []
+
+@PointClass color(128 128 128) size(-8 -8 -8, 8 8 8) = misc_external_map : "COMPILER (qbsp): " +
+	"imports brushes from another .map file at this position. The external file should contain " +
+	"worldspawn brushes only, and its own 'wad' key is ignored, so every texture it uses must be " +
+	"available to this map.\n" +
+	"\n" +
+	"Any other key set here is passed through to the entity the brushes become, so targetname, " +
+	"lighting keys and the like can be set on the prefab."
+[
+	_external_map(string) : "Map File" : : "COMPILER (qbsp): path to the .map file to import."
+	_external_map_classname(string) : "Imported Classname" : : "COMPILER (qbsp): classname the " +
+		"imported brushes are turned into, such as func_detail or func_wall."
+	_external_map_angles(string) : "Rotation" : "0 0 0" : "COMPILER (qbsp): rotation applied to " +
+		"the imported brushes, as 'pitch yaw roll'."
+	_external_map_angle(float) : "Rotation (Yaw Only)" : : "COMPILER (qbsp): rotation around the " +
+		"vertical axis only. Ignored when '_external_map_angles' is set."
+	_external_map_scale(string) : "Scale" : "1" : "COMPILER (qbsp): scale applied to the imported " +
+		"brushes, either as one number or as 'x y z'."
+]
+
+// Keys qbsp reads from any point entity, rather than from an entity of its own.
+@BaseClass = PointCompiler [
+	_nofill(choices) : "Allow Outside The Map" : 0 : "COMPILER (qbsp): stops this entity being " +
+		"reported as a leak when it sits outside the sealed part of the map." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	_lightgrid_hint(choices) : "Light Grid Bounds Hint" : 0 : "COMPILER: includes this entity in " +
+		"the volume the light grid is built to cover, and exempts it from leak filling." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+]
+
+
+//=============================================================================
+// Lights
+//
+// Every light key is read by the light compiler and stripped from the finished
+// BSP. light treats any entity whose classname begins with "light" as a light
+// source, which is why the decorative light entities below carry the full set
+// of light keys.
+//
+// A light becomes a spotlight as soon as it is aimed, either by targeting
+// another entity or by setting a mangle. Naming a light makes it switchable:
+// light allocates a style number for it and overwrites whatever is in the
+// style key, so a named light cannot also be an animated one.
+//=============================================================================
+
+@BaseClass = LightStartOff [
+	spawnflags(flags) =
+	[
+		1 : "Start off" : 0 : "The light is dark until something switches it on. Requires a " +
+			"targetname."
+	]
+]
+
+@BaseClass color(255 255 40) = LightCore [
+	light(integer) : "Brightness" : 300 : "COMPILER (light): brightness of the light. Negative " +
+		"values subtract light from their surroundings, which is a way to darken an area " +
+		"selectively. May also be written as 'red green blue brightness' to set colour and " +
+		"brightness together, though '_color' is the clearer way to do that."
+	_color(color255) : "Colour" : "255 255 255" : "COMPILER (light): colour of the light."
+	style(choices) : "Animation" : 0 : "COMPILER (light): animated brightness pattern. Ignored on " +
+		"a named light, because light allocates a style of its own for switching it." =
+	[
+		0 : "Normal - steady"
+		1 : "Flicker A"
+		2 : "Slow strong pulse"
+		3 : "Candle A"
+		4 : "Fast strobe"
+		5 : "Gentle pulse"
+		6 : "Flicker B"
+		7 : "Candle B"
+		8 : "Candle C"
+		9 : "Slow strobe"
+		10 : "Fluorescent flicker"
+		11 : "Slow pulse, never black"
+	]
+	delay(choices) : "Falloff Formula" : 0 : "COMPILER (light): how brightness falls off with " +
+		"distance. The names in quotes may also be used in place of the numbers." =
+	[
+		0 : "Linear - reaches a fixed distance and stops"
+		1 : "Inverse - 1/distance"
+		2 : "Inverse square - 1/distance squared"
+		3 : "Infinite - equally bright at any distance"
+		4 : "Local minimum light - flat fill, only where the light can see"
+		5 : "Inverse square, softened - dimmer at the source and less harsh nearby"
+	]
+	wait(float) : "Fade Distance Scale" : "1.0" : "COMPILER (light): scales how far this light " +
+		"reaches. Values above 1.0 make it fade out sooner, values below 1.0 carry it further."
+	_falloff(float) : "Hard Fade Distance" : "0" : "COMPILER (light): distance in units at which " +
+		"the light reaches zero brightness, replacing the usual falloff calculation. 'Brightness' " +
+		"then sets only how bright the light is at its centre. Applies to linear falloff only; " +
+		"light warns and ignores it with any other formula."
+	_anglescale(float) : "Angle Falloff" : "-1" : "COMPILER (light): how much the angle between a " +
+		"surface and this light affects its brightness, from 0 for no effect to 1 for full " +
+		"realistic falloff. -1 uses the map-wide setting."
+	_dirt(choices) : "Ambient Occlusion" : 0 : "COMPILER (light): whether ambient occlusion " +
+		"darkens the light this entity casts." =
+	[
+		-1 : "This light is never occluded"
+		0 : "Follow the worldspawn '_dirt' setting"
+		1 : "Occlude this light"
+	]
+	_dirtscale(float) : "Ambient Occlusion Strength" : "0" : "COMPILER (light): overrides the " +
+		"map-wide occlusion strength for this light alone. 0 uses the map-wide value."
+	_dirtgain(float) : "Ambient Occlusion Falloff" : "0" : "COMPILER (light): overrides the " +
+		"map-wide occlusion falloff exponent for this light alone. 0 uses the map-wide value."
+	_dirt_off_radius(float) : "Occlusion Fade-in Start" : "0" : "COMPILER (light): distance in " +
+		"units within which this light casts no ambient occlusion at all. Occlusion then fades " +
+		"in between this distance and the fade-in end. Both keys must be set for either to apply."
+	_dirt_on_radius(float) : "Occlusion Fade-in End" : "0" : "COMPILER (light): distance in units " +
+		"beyond which this light's ambient occlusion is at full strength."
+	_deviance(float) : "Soft Shadow Radius" : "0" : "COMPILER (light): scatters this light into a " +
+		"sphere of smaller lights of the given radius in units, which softens the shadow edges it " +
+		"casts. The total brightness is divided between them."
+	_samples(integer) : "Soft Shadow Samples" : 16 : "COMPILER (light): how many lights the sphere " +
+		"is made of. Higher values give smoother shadows and slower compiles. Only used when a " +
+		"soft shadow radius is set."
+	_bouncescale(float) : "Bounce Light Scale" : "1.0" : "COMPILER (light): scales how much this " +
+		"light contributes to bounced lighting. 0 stops it bouncing entirely."
+]
+
+@BaseClass = LightSpot [
+	target(target_destination) : "Aim At" : : "COMPILER (light): name of an entity to aim at, " +
+		"usually an info_null. Aiming a light turns it into a spotlight."
+	mangle(string) : "Aim Direction" : : "COMPILER (light): direction to aim, as 'yaw pitch roll', " +
+		"where '0 -90 0' points straight down. Aiming a light turns it into a spotlight. Ignored " +
+		"when the light targets an entity."
+	angle(float) : "Cone Width" : "40" : "COMPILER (light): full width of the spotlight cone in " +
+		"degrees."
+	_softangle(float) : "Cone Inner Width" : "0" : "COMPILER (light): width in degrees of an inner " +
+		"cone at full brightness, with the light fading between it and the outer cone. Must be " +
+		"smaller than the cone width. 0 gives a hard-edged cone."
+	_cone(float) : "Cone Radius (Quake II style)" : "10" : "COMPILER (light): half the width of " +
+		"the spotlight cone in degrees, the way the Quake II tools express it. Setting this takes " +
+		"precedence over the cone width."
+]
+
+@BaseClass = LightSun [
+	_sun(choices) : "Act As Sun" : 0 : "COMPILER (light): turns this light into a sun. It stops " +
+		"lighting from its own position and instead casts parallel light out of every sky " +
+		"surface, in the direction the light is aimed. Use this instead of the worldspawn sun " +
+		"keys when a map needs more than two suns, or a sun with its own style." =
+	[
+		0 : "Ordinary light"
+		1 : "Sun"
+	]
+	_sunlight2(choices) : "Act As Sky Dome" : 0 : "COMPILER (light): turns this light into a dome " +
+		"of lights above the horizon emitting from sky surfaces, giving soft light from the whole " +
+		"sky rather than one direction." =
+	[
+		0 : "Ordinary light"
+		1 : "Sky dome"
+	]
+	_sunlight3(choices) : "Act As Ground Dome" : 0 : "COMPILER (light): turns this light into a " +
+		"dome of lights below the horizon emitting from sky surfaces, acting as light bounced up " +
+		"off the ground." =
+	[
+		0 : "Ordinary light"
+		1 : "Ground dome"
+	]
+	_suntexture(string) : "Sun Sky Texture" : : "COMPILER (light): name of the sky texture this " +
+		"sun shines out of, when the map has more than one sky texture and each should light the " +
+		"map differently."
+]
+
+@BaseClass = LightSurface [
+	_surface(string) : "Emissive Texture" : : "COMPILER (light): name of a texture that should " +
+		"give off light. This entity stops being a light in its own right and becomes a template: " +
+		"every surface in the map using that texture emits light with these settings."
+	_surface_offset(float) : "Emissive Surface Offset" : "2" : "COMPILER (light): how far in units " +
+		"the emitted light sits in front of the surfaces it comes from."
+	_surface_spotlight(choices) : "Emissive Surface Direction" : 0 : "COMPILER (light): whether " +
+		"the light from each surface is aimed away from that surface instead of shining in all " +
+		"directions." =
+	[
+		0 : "Shine in all directions"
+		1 : "Aim away from the surface"
+	]
+	_surface_radiosity(choices) : "Emissive Surface Method" : 0 : "COMPILER (light): which " +
+		"algorithm this template uses, overriding the map-wide setting." =
+	[
+		0 : "Subdivision - place point lights over the surface"
+		1 : "Radiosity - treat the surface as an area light"
+	]
+	_surface_is_sky(choices) : "Treat As Sky Emission" : 0 : "COMPILER (light): treats the light " +
+		"from this template as sky light, which changes how its emission is scaled by surface " +
+		"area." =
+	[
+		0 : "Ordinary surface light"
+		1 : "Sky light"
+	]
+	_surflight_group(integer) : "Surface Light Group" : 0 : "COMPILER (light): restricts this " +
+		"template to brush entities carrying the same group number, so the same texture can emit " +
+		"differently in different places."
+	_surflight_minlight_scale(float) : "Surface Light Self-Illumination" : "1.0" : "COMPILER " +
+		"(light): scales the minimum light given to the emissive surfaces themselves, so a light " +
+		"fixture does not render black."
+	_surflight_atten(float) : "Surface Light Attenuation" : "1.0" : "COMPILER (light): scales how " +
+		"quickly the light from these surfaces falls off with distance."
+]
+
+@BaseClass = LightProject [
+	_project_texture(string) : "Projected Texture" : : "COMPILER (light): name of a texture this " +
+		"light projects, in the manner of a slide projector or a gobo. The texture must be used " +
+		"somewhere in the map so that it is available to the compiler."
+	_project_mangle(string) : "Projection Direction" : "20 0 0" : "COMPILER (light): direction the " +
+		"texture is projected, as 'yaw pitch roll'. Defaults to the light's own aim direction."
+	_project_fov(float) : "Projection Field Of View" : "90" : "COMPILER (light): angular width of " +
+		"the projected image in degrees. Wider values spread the image over a larger area."
+]
+
+@BaseClass = LightAdvanced [
+	_nostaticlight(choices) : "Exclude From Lightmap" : 0 : "COMPILER (light): stops this light " +
+		"contributing to the lightmap, leaving it to affect only the light grid." =
+	[
+		0 : "Light the map normally"
+		1 : "Do not light the map"
+	]
+	_bleed(choices) : "Light Through Surfaces" : 0 : "COMPILER (light): lets this light reach the " +
+		"back faces of surfaces facing away from it, ignoring the fact that they are turned away." =
+	[
+		0 : "Off"
+		1 : "On"
+	]
+	_nonudge(choices) : "Do Not Reposition" : 0 : "COMPILER (light): stops light from nudging this " +
+		"entity out of a solid brush before lighting. A light embedded in a wall normally gets " +
+		"moved into open space so that it is not swallowed by the geometry." =
+	[
+		0 : "Move the light out of solid"
+		1 : "Light from exactly this position"
+	]
+	_light_channel_mask(integer) : "Light Channel Mask" : 1 : "COMPILER (light): bitmask of the " +
+		"lighting channels this light shines on. It only lights brush entities that share one of " +
+		"its channels."
+	_shadow_channel_mask(integer) : "Shadow Channel Mask" : 1 : "COMPILER (light): bitmask of the " +
+		"lighting channels whose geometry casts shadows from this light. Defaults to the light " +
+		"channel mask, and setting it separately allows a light to pass through geometry that " +
+		"still blocks other lights."
+	_switchableshadow_target(string) : "Switchable Shadow Target" : : "COMPILER (light): " +
+		"targetname of a brush entity whose shadow should be switchable without any mod support. " +
+		"light works out the difference this entity's shadow makes and stores it in a light " +
+		"style, so switching the style switches the shadow. Implies that this light does not " +
+		"contribute to the static lightmap."
+]
+
+@BaseClass base(Targetname, Appearflags, PointCompiler, LightCore, LightSpot, LightSun,
+	LightSurface, LightProject, LightAdvanced) = CompilerLight []
+
+@PointClass base(CompilerLight, LightStartOff) = light : "Invisible light source. Acts as a point " +
+	"light by default, becomes a spotlight when aimed at a target or given a direction, and can " +
+	"be turned into a sun, a sky dome or an emissive-texture template with the keys below." []
+
+@PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8)
+	model({ "path": ":progs/s_light.spr" }) =
+	light_globe : "Light source with a visible glowing globe sprite." []
+
+@PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8) =
+	light_fluoro : "Invisible light source that also emits a steady fluorescent hum " +
+	"(ambience/fl_hum1.wav) at the position it is placed." []
+
+@PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8) =
+	light_fluorospark : "Invisible light source that also emits the buzz of a broken fluorescent " +
+	"tube (ambience/buzz1.wav). Uses the fluorescent flicker animation unless another style is " +
+	"set." []
+
+@PointClass base(CompilerLight, LightStartOff) size(-10 -10 -20, 10 10 20)
+	model({ "path": ":progs/flame.mdl" }) =
+	light_torch_small_walltorch : "Wall torch carrying a burning flame model and a crackling fire " +
+	"sound. The model is made static, so it costs no entity slot at runtime." []
+
+@PointClass base(CompilerLight, LightStartOff) size(-10 -10 -12, 12 12 18)
+	model({ "path": ":progs/flame2.mdl", "frame": 1 }) =
+	light_flame_large_yellow : "Large yellow flame ball with a burning sound. The model is made " +
+	"static, so it costs no entity slot at runtime." []
+
+@PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8)
+	model({ "path": ":progs/flame2.mdl" }) =
+	light_flame_small_yellow : "Small yellow flame ball with a burning sound. The model is made " +
+	"static, so it costs no entity slot at runtime." []
+
+@PointClass base(CompilerLight, LightStartOff) size(-10 -10 -40, 10 10 40)
+	model({ "path": ":progs/flame2.mdl" }) =
+	light_flame_small_white : "Small white flame ball with a burning sound. The model is made " +
+	"static, so it costs no entity slot at runtime." []
