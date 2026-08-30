@@ -145,7 +145,7 @@
 		"lightmap. Values below 1.0 darken the map overall. Range 0 to 100."
 	_anglescale(float) : "Global Angle Falloff" : "0.5" : "COMPILER (light): how much the angle " +
 		"between a surface and a light affects its brightness. 0 lights every surface equally " +
-		"regardless of facing; 1 is full realistic falloff. Range 0 to 1."
+		"regardless of facing; 1 is full realistic falloff. Alias: '_anglesense'. Range 0 to 1."
 	_spotlightautofalloff(choices) : "Spotlight Automatic Falloff" : 0 : "COMPILER (light): " +
 		"derives the fade distance of every spotlight from the distance to its target." =
 	[
@@ -346,9 +346,20 @@
 ]
 
 @BaseClass = WorldLightProcess [
-	_extra(integer) : "Supersampling" : 1 : "COMPILER (light): samples each lightmap pixel " +
-		"several times and averages the result, softening stair-stepping along shadow edges. " +
-		"2 samples a 2x2 grid, 4 samples a 4x4 grid."
+	_extra(choices) : "Supersampling (2x2)" : 1 : "COMPILER (light): samples each lightmap pixel " +
+		"on a 2x2 grid and averages the result, softening the stair-stepping along shadow edges. " +
+		"The value written here is ignored: the key counts as on whenever it is present, even " +
+		"set to 0, so remove it entirely to turn supersampling off. Use '_extra4' for a 4x4 " +
+		"grid instead; setting both leaves whichever qbsp reads last in effect." =
+	[
+		1 : "On"
+	]
+	_extra4(choices) : "Supersampling (4x4)" : 1 : "COMPILER (light): samples each lightmap pixel " +
+		"on a 4x4 grid, giving smoother shadow edges than '_extra' for a longer compile. The " +
+		"value written here is ignored in the same way, so remove the key to turn it off." =
+	[
+		1 : "On"
+	]
 	_soft(integer) : "Lightmap Blur" : 0 : "COMPILER (light): blurs the finished lightmap by this " +
 		"radius in samples. -1 chooses a radius from the supersampling setting."
 	_gate(float) : "Light Cutoff" : "0.001" : "COMPILER (light): brightness below which a light " +
@@ -487,7 +498,7 @@
 		"minimum light. Alias: '_mincolor'."
 	_minlight_exclude(string) : "Minimum Light Exclusion" : : "COMPILER (qbsp): name of a texture " +
 		"that is exempt from minimum light on this entity. Nine further exclusions may be added " +
-		"as '_minlight_exclude2' through '_minlight_exclude9'."
+		"as '_minlight_exclude1' through '_minlight_exclude9'."
 	_maxlight(float) : "Maximum Light" : : "COMPILER: clamps every face of this entity to at most " +
 		"this light level. Range 0 to 510."
 	_lightcolorscale(float) : "Light Saturation" : "1.0" : "COMPILER: how much colour the lighting " +
@@ -590,6 +601,21 @@
 	_chop_order(integer) : "Face Chop Order" : 0 : "COMPILER (qbsp): controls which brush wins " +
 		"where two brushes overlap and their faces have to be divided. Lower values are cut by " +
 		"higher ones. Replaces the deprecated '_chop' key."
+	_hulls(integer) : "Collision Hulls" : 0 : "COMPILER (qbsp): which collision hulls to build " +
+		"for this entity, as a bitmask: 1 for gunfire and other point-sized traces, 2 for " +
+		"players and most monsters, 4 for large monsters such as shamblers. Add the values " +
+		"together to keep more than one. 0, the default, builds them all.\n" +
+		"\n" +
+		"Dropping a hull saves clipnodes, which a large map can run out of. An entity players " +
+		"can never walk into loses nothing by building only hull 1."
+	_omitbrushes(choices) : "Discard Brushes" : 0 : "COMPILER (qbsp): throws this entity's " +
+		"brushes away during compilation, keeping the entity and its keys. Useful for building " +
+		"guides that should not reach the finished map, and for leaving geometry in the source " +
+		"map while compiling without it." =
+	[
+		0 : "Compile the brushes normally"
+		1 : "Discard the brushes"
+	]
 	_noambient(choices) : "Suppress Ambient Sounds" : 0 : "COMPILER (vis): stops this entity's " +
 		"water, slime, lava and sky brushes contributing to the automatic ambient sounds the " +
 		"engine plays." =
@@ -790,7 +816,7 @@
 		"light warns and ignores it with any other formula."
 	_anglescale(float) : "Angle Falloff" : "-1" : "COMPILER (light): how much the angle between a " +
 		"surface and this light affects its brightness, from 0 for no effect to 1 for full " +
-		"realistic falloff. -1 uses the map-wide setting."
+		"realistic falloff. -1 uses the map-wide setting. Alias: '_anglesense'."
 	_dirt(choices) : "Ambient Occlusion" : 0 : "COMPILER (light): whether ambient occlusion " +
 		"darkens the light this entity casts." =
 	[
