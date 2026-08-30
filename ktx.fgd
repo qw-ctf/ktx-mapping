@@ -205,152 +205,249 @@
 ]
 
 @BaseClass = WorldLightCore [
-	_minlight(float) : "Minimum Light" : "0" : "COMPILER (light): light level applied to every " +
-		"surface in the map, so that nothing is fully black. Alias: 'light'."
+	_minlight(float) : "Minimum Light" : "0" : "COMPILER (light): a floor under the lighting, so " +
+		"that no surface in the map is ever completely black.<br><br>" +
+		"This is the usual cure for shadows that read as holes. Without it a corner no light " +
+		"reaches is pure black and loses its texture entirely. Values between 5 and 25 work for " +
+		"most maps; start at 10 and raise it until the darkest corners still show their " +
+		"material. Much above 30 the map starts to look flat and evenly lit.<br><br>" +
+		"Tint it with the colour key below rather than leaving it grey, since a faint blue or " +
+		"brown floor reads as bounced light from the surroundings. Alias: <code>light</code>."
 	_minlight_color(color255) : "Minimum Light Colour" : "255 255 255" : "COMPILER (light): " +
-		"colour of the minimum light. Alias: '_mincolor'."
+		"colour of the minimum light.<br><br>" +
+		"A cool tint in shadow against warm lights is the cheapest way to make lighting look " +
+		"considered. Keep it subtle: a strongly coloured floor tints every dark surface in the " +
+		"map at once. Alias: <code>_mincolor</code>."
 	_minlight_dirt(choices) : "Minimum Light Ambient Occlusion" : 0 : "COMPILER (light): whether " +
-		"ambient occlusion darkens the minimum light. Forced on when '_dirt' is enabled." =
+		"ambient occlusion is allowed to darken the minimum light.<br><br>" +
+		"Turning occlusion on map-wide switches this on as well, which keeps corners from being " +
+		"flattened back out by the light floor. Set it to -1 if occlusion is eating the floor " +
+		"and shadows have gone black again." =
 	[
 		-1 : "Never occlude minimum light"
-		0 : "Follow the '_dirt' setting"
+		0 : "Follow the ambient occlusion setting"
 		1 : "Occlude minimum light"
 	]
 	_minlight_mottle(choices) : "Minimum Light Mottling" : 0 : "COMPILER (light): breaks up the " +
-		"flatness of minimum light with a subtle noise pattern. Alias: '_minlightMottle'." =
+		"minimum light with a faint noise pattern.<br><br>" +
+		"Large unlit surfaces lit only by the floor can look like flat colour. Mottling gives " +
+		"them a little variation, in the manner of the original Quake II lighting. It is subtle " +
+		"and easy to miss on small surfaces. Alias: <code>_minlightMottle</code>." =
 	[
 		0 : "Flat"
 		1 : "Mottled"
 	]
-	_maxlight(float) : "Maximum Light" : "0" : "COMPILER (light): clamps every surface to at most " +
-		"this light level. 0 disables the clamp."
-	_addmin(choices) : "Minimum Light Mode" : 0 : "COMPILER (light): how minimum light combines " +
-		"with real lighting." =
+	_maxlight(float) : "Maximum Light" : "0" : "COMPILER (light): a ceiling on the lighting, " +
+		"clamping every surface to at most this level.<br><br>" +
+		"Useful for stopping surfaces close to a bright light from burning out to featureless " +
+		"white. 0 leaves the lighting unclamped."
+	_addmin(choices) : "Minimum Light Mode" : 0 : "COMPILER (light): whether the minimum light " +
+		"is a floor or is added on top of everything.<br><br>" +
+		"Adding it brightens the whole map rather than only its shadows, which washes lighting " +
+		"out. Leave it clamping unless a deliberately flat look is wanted." =
 	[
 		0 : "Clamp - raise dark surfaces up to the minimum"
 		1 : "Add - add the minimum on top of all lighting"
 	]
 	_dist(float) : "Global Fade Distance Scale" : "1.0" : "COMPILER (light): scales how far every " +
-		"light reaches. Values above 1.0 make lights fade out sooner, values below 1.0 make them " +
-		"carry further. Range 0 to 100."
+		"light in the map reaches, without changing how bright it is at the source.<br><br>" +
+		"A map that is lit well in places but falls dark between them can often be fixed here " +
+		"rather than by editing every light. Values below 1.0 carry light further; above 1.0 " +
+		"pull it in. Stay near 1.0 and move in steps of about 0.1, since this multiplies " +
+		"across every light at once."
 	_range(float) : "Global Brightness Scale" : "0.5" : "COMPILER (light): scales the brightness " +
-		"of every light without changing how far it reaches. Range 0 to 100."
-	_gamma(float) : "Lightmap Gamma" : "1.0" : "COMPILER (light): gamma applied to the finished " +
-		"lightmap. Values below 1.0 darken the map overall. Range 0 to 100."
-	_anglescale(float) : "Global Angle Falloff" : "0.5" : "COMPILER (light): how much the angle " +
-		"between a surface and a light affects its brightness. 0 lights every surface equally " +
-		"regardless of facing; 1 is full realistic falloff. Alias: '_anglesense'. Range 0 to 1."
-	_spotlightautofalloff(choices) : "Spotlight Automatic Falloff" : 0 : "COMPILER (light): " +
-		"derives the fade distance of every spotlight from the distance to its target." =
+		"of every light without changing how far it reaches.<br><br>" +
+		"The overall exposure control for the map. The default of 0.5 is the Quake standard; " +
+		"raising it towards 1.0 brightens everything, and small changes go a long way. Adjust " +
+		"this before rebalancing individual lights."
+	_gamma(float) : "Lightmap Gamma" : "1.0" : "COMPILER (light): gamma curve applied to the " +
+		"finished lightmap.<br><br>" +
+		"Where the brightness scale moves everything together, gamma changes the relationship " +
+		"between light and shadow: below 1.0 deepens shadows and adds contrast, above 1.0 lifts " +
+		"the mid-tones and flattens it. Useful values sit between about 0.8 and 1.2."
+	_anglescale(float) : "Global Angle Falloff" : "0.5" : "COMPILER (light): how much a surface " +
+		"turned away from a light is dimmed.<br><br>" +
+		"This is the key that decides whether lighting looks modelled or flat. At 1.0 a surface " +
+		"facing a light is fully lit and one edge-on to it is dark, which is physically right " +
+		"and gives strong contrast between the walls of a room. At 0 every surface takes the " +
+		"same light regardless of facing, which flattens the geometry but keeps corners " +
+		"readable. The default of 0.5 splits the difference and suits most maps.<br><br>" +
+		"Alias: <code>_anglesense</code>."
+	_spotlightautofalloff(choices) : "Spotlight Automatic Falloff" : 0 : "COMPILER (light): makes " +
+		"every spotlight fade out at the thing it is aimed at, instead of by its own falloff " +
+		"settings.<br><br>" +
+		"Convenient when spotlights are aimed at floors and should not spill past them, but it " +
+		"applies to every spotlight in the map at once." =
 	[
 		0 : "Use the normal falloff rules"
 		1 : "Fade out at the spotlight target"
 	]
-	_phong(choices) : "Phong Shading" : 1 : "Smooth shading across adjacent faces. This key is " +
-		"read by both compilers and means something different to each: setting it to 0 switches " +
-		"phong shading off for the whole map in light, while setting it to 1 makes qbsp turn " +
-		"phong shading on for every world face." =
+	_phong(choices) : "Phong Shading" : 1 : "Smooths lighting across the joins between faces, so " +
+		"that a curve built from flat panels is lit as though it were round.<br><br>" +
+		"Both compilers read this key and they mean different things by it. Setting it to 0 " +
+		"switches phong shading off everywhere, which is the way to rule it out while chasing a " +
+		"lighting problem. Setting it to 1 makes qbsp smooth every face in the world, which is " +
+		"rarely wanted map-wide: it will round off joins that were meant to be sharp. Prefer " +
+		"turning phong on per brush entity." =
 	[
 		0 : "Disable phong shading map-wide"
 		1 : "Enable phong shading on all world faces"
 	]
-	_phong_angle(float) : "Phong Smoothing Angle" : "0" : "COMPILER (qbsp): default smoothing " +
-		"angle in degrees for every world face. Faces meeting at this angle or less are smoothed " +
-		"together. Enabling '_phong' without an angle uses 89."
+	_phong_angle(float) : "Phong Smoothing Angle" : "0" : "COMPILER (qbsp): how steep a join " +
+		"between two faces can be and still be smoothed, in degrees.<br><br>" +
+		"Faces meeting at this angle or less are blended together; anything sharper keeps its " +
+		"edge. Turning phong on without setting an angle uses 89, which smooths everything short " +
+		"of a right angle. Lower it to around 45 when only gentle curves should be rounded off."
 ]
 
 @BaseClass = WorldLightSun [
 	_sunlight(float) : "Sun Brightness" : "0" : "COMPILER (light): brightness of the sun, which " +
-		"casts parallel light from every sky surface. Negative values remove light. " +
-		"Alias: '_sun_light'."
+		"shines through every sky surface in the map as parallel light.<br><br>" +
+		"The sun does not come from a position, so it casts shadows that all fall the same way " +
+		"regardless of where the sky is. A map with any sky at all usually wants one. Try 100 to " +
+		"200 for daylight and 30 to 60 for an overcast or moonlit sky. Negative values subtract " +
+		"light instead, which is occasionally useful for pulling an area down.<br><br>" +
+		"Alias: <code>_sun_light</code>."
 	_sunlight_color(color255) : "Sun Colour" : "255 255 255" : "COMPILER (light): colour of the " +
-		"sun. Alias: '_sun_color'."
-	_sunlight_mangle(string) : "Sun Direction" : "0 -90 0" : "COMPILER (light): direction the " +
-		"sun shines, as 'yaw pitch roll'. '0 -90 0' points straight down. " +
-		"Aliases: '_sun_mangle', '_sun_angle'."
-	_sunlight_penumbra(float) : "Sun Edge Softness" : "0" : "COMPILER (light): width of the soft " +
-		"edge on sun shadows, in degrees. 3 to 4 gives a gently softened edge; 10 to 20 gives " +
-		"diffuse, overcast sunlight. Range 0 to 180."
+		"sun.<br><br>" +
+		"Warm sunlight against a cooler minimum light is the standard outdoor combination. Keep " +
+		"it close to white and let the tint do the work; heavily coloured sunlight quickly stops " +
+		"reading as daylight. Alias: <code>_sun_color</code>."
+	_sunlight_mangle(string) : "Sun Direction" : "0 -90 0" : "COMPILER (light): direction the sun " +
+		"shines, written as yaw, then pitch, then roll.<br><br>" +
+		"Yaw turns the sun around the compass and pitch tips it down: <code>0 -90 0</code> is " +
+		"directly overhead, and something like <code>45 -35 0</code> gives a lower, raking light " +
+		"that models geometry far better than midday sun. Note the order differs from the angles " +
+		"key used elsewhere, which starts with pitch.<br><br>" +
+		"Aliases: <code>_sun_mangle</code>, <code>_sun_angle</code>."
+	_sunlight_penumbra(float) : "Sun Edge Softness" : "0" : "COMPILER (light): how soft the edges " +
+		"of sun shadows are, in degrees.<br><br>" +
+		"0 gives the hard-edged shadow of a point sun, which can look artificial indoors. 3 to 4 " +
+		"softens the edge the way real sunlight does; 10 to 20 gives the diffuse light of an " +
+		"overcast sky. Larger values cost compile time, since the softness is built from many " +
+		"sampled directions."
 	_sunlight_dirt(choices) : "Sun Ambient Occlusion" : 0 : "COMPILER (light): whether ambient " +
-		"occlusion darkens sunlight." =
+		"occlusion darkens sunlight as well." =
 	[
 		-1 : "Never occlude sunlight"
-		0 : "Follow the '_dirt' setting"
+		0 : "Follow the ambient occlusion setting"
 		1 : "Occlude sunlight"
 	]
-	_sun2(float) : "Second Sun Brightness" : "0" : "COMPILER (light): brightness of a second sun, " +
-		"aimed independently of the first. Useful as a fill light from another direction."
+	_sun2(float) : "Second Sun Brightness" : "0" : "COMPILER (light): a second sun, aimed " +
+		"independently of the first.<br><br>" +
+		"Its usual job is fill: a dim sun from roughly the opposite direction, at perhaps a " +
+		"quarter of the main sun's brightness, keeps surfaces facing away from the sun from " +
+		"going flat without lifting the whole map."
 	_sun2_color(color255) : "Second Sun Colour" : "255 255 255" : "COMPILER (light): colour of " +
-		"the second sun."
+		"the second sun. A cool fill against a warm key sun is the conventional pairing."
 	_sun2_mangle(string) : "Second Sun Direction" : "0 -90 0" : "COMPILER (light): direction the " +
-		"second sun shines, as 'yaw pitch roll'."
-	_sunlight2(float) : "Sky Dome Brightness" : "0" : "COMPILER (light): brightness of a dome of " +
-		"lights arranged above the horizon, emitting from sky surfaces. Produces soft daylight " +
-		"from the whole sky rather than a single direction."
+		"second sun shines, as yaw, pitch and roll."
+	_sunlight2(float) : "Sky Dome Brightness" : "0" : "COMPILER (light): soft daylight coming " +
+		"from the whole sky at once rather than from a single direction.<br><br>" +
+		"Where the sun is one hard light, this is a dome of many arranged above the horizon, so " +
+		"shadows are soft and open areas are lit evenly. It is what makes an outdoor area read " +
+		"as genuinely open, and it pairs well with a dimmer sun than would otherwise be needed. " +
+		"Try 40 to 80. It costs noticeably more compile time than a plain sun."
 	_sunlight2_color(color255) : "Sky Dome Colour" : "255 255 255" : "COMPILER (light): colour of " +
-		"the upper sky dome. Alias: '_sunlight_color2'."
-	_sunlight3(float) : "Ground Dome Brightness" : "0" : "COMPILER (light): brightness of a dome " +
-		"of lights arranged below the horizon, emitting from sky surfaces. Acts as bounce light " +
-		"coming up off the ground."
+		"the sky dome. A pale blue is the usual choice, since this stands in for light from the " +
+		"sky itself. Alias: <code>_sunlight_color2</code>."
+	_sunlight3(float) : "Ground Dome Brightness" : "0" : "COMPILER (light): the same idea as the " +
+		"sky dome, but arranged below the horizon so the light comes upward.<br><br>" +
+		"It stands in for light bouncing up off the ground, filling in undersides and ceilings " +
+		"that nothing else reaches. Keep it well below the sky dome, and tint it towards the " +
+		"colour of the ground it is meant to be bouncing from."
 	_sunlight3_color(color255) : "Ground Dome Colour" : "255 255 255" : "COMPILER (light): colour " +
-		"of the lower dome. Alias: '_sunlight_color3'."
+		"of the ground dome. Alias: <code>_sunlight_color3</code>."
 	_sunlight2_dirt(choices) : "Sky Dome Ambient Occlusion" : 0 : "COMPILER (light): whether " +
 		"ambient occlusion darkens the sky and ground domes." =
 	[
 		-1 : "Never occlude the domes"
-		0 : "Follow the '_dirt' setting"
+		0 : "Follow the ambient occlusion setting"
 		1 : "Occlude the domes"
 	]
-	_sunsamples(integer) : "Sky Dome Sample Count" : 64 : "COMPILER (light): how many lights make " +
-		"up each dome. Higher values give smoother sky shadows and slower compiles. " +
-		"Range 8 to 2048."
+	_sunsamples(integer) : "Sky Dome Sample Count" : 64 : "COMPILER (light): how many separate " +
+		"lights each dome is built from.<br><br>" +
+		"More samples give smoother sky shadows and a slower compile. The default of 64 is fine " +
+		"while building; raise it for a final compile if dome shadows look banded."
 ]
 
 @BaseClass = WorldLightDirt [
-	_dirt(choices) : "Ambient Occlusion" : 0 : "COMPILER (light): darkens corners and creases " +
-		"across the whole map, approximating the way light fails to reach tight spaces. " +
-		"Individual lights and brush entities can opt out. Alias: '_dirty'." =
+	_dirt(choices) : "Ambient Occlusion" : 0 : "COMPILER (light): darkens corners, creases and " +
+		"the places where two surfaces meet, approximating the way light struggles to reach a " +
+		"tight space.<br><br>" +
+		"Turning this on does more for the look of a map than any other single key. It gives " +
+		"geometry weight, separates a wall from the floor it stands on, and settles objects " +
+		"into the space around them. It also costs real compile time, so it is often left off " +
+		"while building and turned on for the final compile.<br><br>" +
+		"Individual lights and brush entities can opt out. Alias: <code>_dirty</code>." =
 	[
 		0 : "Off"
 		1 : "On"
 	]
-	_dirtmode(choices) : "Ambient Occlusion Sampling" : 0 : "COMPILER (light): how occlusion rays " +
-		"are distributed." =
+	_dirtmode(choices) : "Ambient Occlusion Sampling" : 0 : "COMPILER (light): how the rays that " +
+		"measure occlusion are spread out.<br><br>" +
+		"Ordered sampling is even and predictable. Randomized trades that for a slightly noisy " +
+		"result that copes better with complicated geometry, where the ordered pattern can leave " +
+		"visible banding." =
 	[
 		0 : "Ordered - even coverage"
 		1 : "Randomized - better on complex geometry"
 	]
-	_dirtdepth(float) : "Ambient Occlusion Depth" : "128" : "COMPILER (light): how far occlusion " +
-		"rays travel, in units. Larger values spread shading further from corners."
-	_dirtscale(float) : "Ambient Occlusion Strength" : "1.0" : "COMPILER (light): multiplies how " +
-		"dark the occlusion shading becomes. Range 0 to 100."
-	_dirtgain(float) : "Ambient Occlusion Falloff" : "1.0" : "COMPILER (light): exponent applied " +
-		"to the occlusion curve. Values below 1.0 push the shading further out from corners; " +
-		"values above 1.0 keep it tight. Range 0 to 100."
-	_dirtangle(float) : "Ambient Occlusion Cone Angle" : "88" : "COMPILER (light): width of the " +
-		"cone sampled for occlusion, in degrees. Lowering it avoids unwanted shading inside " +
-		"arches and pipes. Range 1 to 90."
+	_dirtdepth(float) : "Ambient Occlusion Depth" : "128" : "COMPILER (light): how far the " +
+		"occlusion rays reach, in units.<br><br>" +
+		"This sets the scale of the effect: how far out from a corner the darkening spreads. The " +
+		"default of 128 suits rooms of ordinary size. Raise it in large open spaces where the " +
+		"shading otherwise hugs the corners too tightly, and lower it in cramped detail work."
+	_dirtscale(float) : "Ambient Occlusion Strength" : "1.0" : "COMPILER (light): how dark the " +
+		"occlusion shading goes.<br><br>" +
+		"The main dial once occlusion is on. Below 1.0 is subtle, above 1.0 is heavy and quickly " +
+		"starts to look like dirt smeared into every corner, which is where the key got its " +
+		"name. Useful values sit roughly between 0.5 and 2."
+	_dirtgain(float) : "Ambient Occlusion Falloff" : "1.0" : "COMPILER (light): the shape of the " +
+		"curve from full shadow at a corner out to no shading at all.<br><br>" +
+		"Where strength sets how dark the effect gets, this sets how it is distributed. Below " +
+		"1.0 spreads the shading further out into a broad, soft gradient; above 1.0 pulls it " +
+		"tight against the corner and leaves the rest of the surface clean. Try values between " +
+		"0.5 and 2 alongside the strength key."
+	_dirtangle(float) : "Ambient Occlusion Cone Angle" : "88" : "COMPILER (light): how wide a " +
+		"cone is sampled when measuring occlusion, in degrees.<br><br>" +
+		"The default of 88 samples almost the whole hemisphere above a surface. Narrowing it " +
+		"stops the inside of arches, pipes and doorways from being darkened simply for being " +
+		"enclosed. Worth reaching for only when curved or tunnelled geometry has gone too dark."
 ]
 
 @BaseClass = WorldLightBounce [
-	_bounce(integer) : "Bounce Light Passes" : 0 : "COMPILER (light): number of times light " +
-		"bounces off surfaces to light other surfaces. Each pass costs compile time. " +
-		"Range 0 to 100."
-	_bouncescale(float) : "Bounce Light Brightness" : "1.0" : "COMPILER (light): scales the " +
-		"brightness of bounced light. Range 0 to 100."
+	_bounce(integer) : "Bounce Light Passes" : 0 : "COMPILER (light): how many times light is " +
+		"allowed to reflect off surfaces onto other surfaces.<br><br>" +
+		"Direct lighting alone leaves shadows empty and lit rooms harsh. One bounce fills those " +
+		"shadows with soft indirect light and is the single biggest step towards lighting that " +
+		"looks considered rather than placed. Set it to 1; a second pass adds a little and " +
+		"costs a lot, and beyond that the difference is hard to see.<br><br>" +
+		"Bounce lengthens compile times noticeably, so it is commonly left off while blocking " +
+		"out and turned on once the lighting is roughly right."
+	_bouncescale(float) : "Bounce Light Brightness" : "1.0" : "COMPILER (light): how strong the " +
+		"bounced light is.<br><br>" +
+		"Raise it above 1.0 when one bounce is not filling shadows enough and a second pass is " +
+		"too slow to justify. Useful values run from about 0.5 to 2."
 	_bouncecolorscale(float) : "Bounce Light Colour Bleed" : "0.0" : "COMPILER (light): how much " +
-		"of a surface texture's colour is carried into the light it bounces. 0 bounces white " +
-		"light, 1 bounces fully tinted light. Range 0 to 1."
+		"of a surface's texture colour is carried into the light it reflects.<br><br>" +
+		"At 0 bounced light stays white. At 1 a red wall throws red light onto everything near " +
+		"it, which is what really happens and is the effect that makes a room feel like it is " +
+		"made of something. It is also easy to overdo, so try 0.3 to 0.5 before going higher."
 	_bouncestyled(choices) : "Bounce Styled Lights" : 0 : "COMPILER (light): whether switchable " +
-		"and animated lights contribute bounce light. They bounce at full brightness regardless " +
-		"of their current state, so this is usually left off." =
+		"and animated lights contribute bounced light.<br><br>" +
+		"They bounce at full brightness whatever they are doing at the time, so a light that is " +
+		"switched off still throws indirect light around the room. Leave this off unless the " +
+		"styled lights in question are always on." =
 	[
 		0 : "Styled lights do not bounce"
 		1 : "Styled lights bounce"
 	]
-	_bouncelightsubdivision(float) : "Bounce Emitter Size" : "64.0" : "COMPILER (light): size in " +
-		"units of the patches a surface is divided into when it re-emits bounced light. Smaller " +
-		"values are more accurate and slower. Range 1 to 8192."
+	_bouncelightsubdivision(float) : "Bounce Emitter Size" : "64.0" : "COMPILER (light): the size " +
+		"in units of the patches a lit surface is divided into when it re-emits light.<br><br>" +
+		"Smaller patches follow the shape of the lighting more closely and compile more slowly. " +
+		"The default is a reasonable compromise; halve it only if bounced light looks blocky " +
+		"across a large surface."
 ]
 
 // Surface lights are built by one of two algorithms. Quake maps use subdivision unless the
