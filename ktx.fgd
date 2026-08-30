@@ -1833,7 +1833,8 @@
 // often supplied in a separate .route file than built into the map.
 //=============================================================================
 
-@PointClass base(Appearflags, Target, Targetname) size(-16 -16 -16, 16 16 16) color(255 128 0) =
+@PointClass base(Appearflags, Target, Targetname, Race) size(-16 -16 -16, 16 16 16)
+	color(255 128 0) =
 	race_route_start : "RACE: starting line of a race route, and the entity that carries the " +
 	"route's settings. Its target names the first marker on the route."
 [
