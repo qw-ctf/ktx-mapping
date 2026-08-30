@@ -57,6 +57,76 @@
 // never reach the server.
 //
 //-----------------------------------------------------------------------------
+// Words used throughout
+//-----------------------------------------------------------------------------
+//
+//   compile      Turning the .map file drawn in the editor into the .bsp the
+//                server loads. Three programs run in order: qbsp builds the
+//                geometry, vis works out what is visible from where, and light
+//                bakes the lighting. Each reads its own keys from the map.
+//
+//   brush model  A group of brushes that belongs to an entity rather than to
+//                the world, such as a door. Brush models move and can be made
+//                transparent; world brushes cannot. Some compiler keys only
+//                work on one or the other, and the descriptions say which.
+//
+//   lightmap     The baked lighting, painted onto the surfaces as a low
+//                resolution texture. Lighting in Quake is calculated once at
+//                compile time and cannot change shape while the map is played.
+//
+//   light style  A named brightness pattern a light can follow, used for
+//                flickering and pulsing, and for switching lights on and off
+//                during play. A map has a limited supply of them.
+//
+//   detail       A brush marked as decoration, which vis skips when working
+//                out visibility. Detail brushes speed up compiling
+//                considerably but do not seal the map against the void.
+//
+//   ambient      Darkening of corners and creases, approximating the way light
+//   occlusion    struggles to reach a tight space. Called dirt in the keys
+//                themselves, and often shortened to AO elsewhere.
+//
+//   phong        Smoothing of lighting across the joins between faces, so that
+//   shading      a curve built from flat panels is lit as though it were round.
+//
+//   bounce       Light reflected off surfaces onto other surfaces, which fills
+//                shadows with soft indirect light and picks up the colour of
+//                what it bounced from.
+//
+//   surface      Light emitted by a texture rather than by a light entity, so
+//   light        that every wall using that texture glows.
+//
+//   clipnode     The collision data a brush model carries. Quake builds three
+//                sets, one for shots, one for players and one for large
+//                monsters, and a big map can run out of room for them.
+//
+//   BSPX lump    An extra section added to the .bsp holding data that original
+//                Quake never had, such as coloured or higher resolution
+//                lighting. Engines that do not understand a lump ignore it.
+//
+//-----------------------------------------------------------------------------
+// Where to start with lighting
+//-----------------------------------------------------------------------------
+//
+//   A map with no lighting keys at all compiles to harsh lights and pure black
+//   shadows. Four worldspawn keys do most of the work of fixing that:
+//
+//     _minlight     lifts the darkest shadows so nothing is pure black.
+//                   Somewhere between 5 and 25; start at 10.
+//     _dirt         set to 1 to darken corners and creases, which does more
+//                   for the look of a map than any other single key.
+//     _bounce       set to 1 for one pass of indirect light. Softens shadows
+//                   and spreads colour. 2 is occasionally worth it; more
+//                   rarely is.
+//     _anglescale   how much a surface facing away from a light is dimmed.
+//                   The default of 0.5 is a good compromise; 1 is realistic
+//                   and contrasty, 0 is flat.
+//
+//   Lights themselves take a brightness in the light key, defaulting to 300,
+//   which lights a small room. Beyond that, delay chooses how the light falls
+//   off with distance, and is the key that most changes how a light reads.
+//
+//-----------------------------------------------------------------------------
 // House style for edits to this file
 //-----------------------------------------------------------------------------
 //
@@ -70,9 +140,33 @@
 //   an explicit default, because an empty default column directly before the
 //   option list is a parse error.
 //
+//   TrenchBroom renders descriptions through Qt, which formats a description
+//   as rich text as soon as it finds markup in it. The subset is wide: bold,
+//   italic, code, lists, tables, rules and coloured spans all work.
+//
+//     Write every line break as <br>. A real newline in the source is not
+//     reliable once markup is in play, and the string continuation operator
+//     (+) joins source lines without producing one.
+//
+//     Never escape a double quote inside a description. TrenchBroom keeps the
+//     backslash, so the reader sees it. Quote HTML attributes with single
+//     quotes instead, and write the characters < > and & as &lt; &gt; &amp;
+//     wherever they are meant literally.
+//
+//     A class description opens with its summary sentence in bold. A property
+//     description does not, because TrenchBroom already prints the property
+//     name above it in bold. Longer descriptions follow the summary with
+//     <br><br> and then a paragraph of explanation.
+//
+//     Colour carries meaning and is not decoration. It is reserved for the
+//     REQUIRED and BROKEN tags. Background colours are never used: TrenchBroom
+//     follows the system light and dark setting, and text that is black on one
+//     is white on the other, so a fixed background is unreadable in one of them.
+//
 //   Descriptions are complete sentences in the present tense, stating units
-//   where they apply. Flag and choice captions are sentence case. Long text is
-//   split across source lines with the string continuation operator (+).
+//   where they apply. Where a key has a useful working range, give it, and say
+//   what value to start from rather than quoting the range the compiler will
+//   accept. Flag and choice captions are sentence case.
 //
 //=============================================================================
 
@@ -1629,39 +1723,41 @@ Doors that touch each other are linked into one, so that opening any part opens 
 // KTX brush entities
 //=============================================================================
 
-// TEMPORARY FORMATTING PROBE - func_bob's real description is in the git history and is
-// restored once the rendering questions below are answered. TrenchBroom shows entity
-// documentation in a QTextEdit and appends each description with Qt's automatic rich text
-// detection, so a description containing markup may render as HTML. This tests whether it
-// does, and what survives if it does.
-@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob : "<b>Brush model that " +
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob : "<b>KTX: brush model that " +
 	"drifts gently back and forth, for floating platforms and hanging objects.</b><br><br>" +
-	"This entity came from two different mods that gave its flags opposite meanings, and KTX " +
-	"implements neither cleanly: setting bit 1 or bit 4 <i>deletes the entity</i> when the map " +
-	"loads, and bit 2 does nothing. Leave the spawnflags at zero.<br><br>" +
-	"TEST 1, font tag colour: <font color='#c0392b'>this should be red</font> end<br>" +
-	"TEST 2, span style colour: <span style='color:#2980b9'>this should be blue</span> end<br>" +
-	"TEST 3, named colour: <font color='green'>this should be green</font> end<br>" +
-	"TEST 4, background: <span style='background-color:#f1c40f'>this should be highlighted" +
-	"</span> end<br>" +
-	"TEST 5, monospace: <code>_dirt 1</code> and <tt>_bounce 2</tt> should look like code<br>" +
-	"TEST 6, heading follows this line:<h3>Should this be large?</h3>" +
-	"TEST 7, a real newline follows this colon:
-DID THIS WORD START A NEW LINE? If it sits on the same line as the colon above, real
-newlines are being collapsed and every break has to be written as a break tag instead."
+	"The movement is a slow drift rather than a mechanical cycle: the entity eases away from " +
+	"its resting position, slows, turns and comes back, so a platform built with it never quite " +
+	"repeats in step with anything else. Set the direction, how far it travels and how long a " +
+	"cycle takes, and leave the two curve keys alone unless the motion needs to feel heavier " +
+	"or lighter.<br><br>" +
+	"<b><font color='#d9534f'>The spawnflags do not work.</font></b> This entity was taken from " +
+	"two different mods that gave the same bits opposite meanings, and KTX implements neither " +
+	"cleanly: bit 1 and bit 4 both delete the entity as the map loads, and bit 2 does nothing " +
+	"at all. Leave the flags at zero."
 [
-	angle(integer) : "Movement Direction" : 0 : "<b>Direction the entity drifts, in degrees.</b>" +
-		"<br><br>Use 360 for due east, -1 for straight up and -2 for straight down."
+	angle(integer) : "Movement Direction" : 0 : "Direction the entity drifts, in degrees.<br><br>" +
+		"Use 360 rather than 0 for due east, since 0 reads as unset. -1 points straight up and " +
+		"-2 straight down, which is what a hovering platform usually wants."
 	height(integer) : "Movement Distance" : 8 : "How far the entity travels from its resting " +
-		"position, in units."
-	count(integer) : "Cycle Time" : 2 : "Seconds between changes of direction. Must be at least 1."
-	waitmin(float) : "Acceleration Curve" : "1" : "Shapes the start of each movement. 1 moves at " +
-		"a steady rate; higher values ease in more sharply."
-	waitmin2(float) : "Deceleration Curve" : "0.75" : "Shapes the end of each movement, easing " +
-		"the entity to a halt."
-	delay(float) : "Start Offset" : "0" : "Seconds to wait before starting to move, which lets " +
-		"several bobbing entities run out of step with one another. A negative value picks a " +
-		"random offset."
+		"position, in units.<br><br>" +
+		"The default of 8 is a gentle float. A hanging sign or a drifting platform reads well " +
+		"between 4 and 16; much beyond that stops looking like drift and starts looking like a " +
+		"lift."
+	count(integer) : "Cycle Time" : 2 : "Seconds the entity takes between changes of direction, " +
+		"so the full there-and-back cycle is twice this.<br><br>" +
+		"Must be at least 1. Larger values give a slower, heavier drift."
+	waitmin(float) : "Acceleration Curve" : "1" : "Shapes how the movement starts.<br><br>" +
+		"1 accelerates evenly. Higher values hold the entity still longer and then pull it away " +
+		"more sharply, which suits something heavy being pushed. Values below 1 start abruptly."
+	waitmin2(float) : "Deceleration Curve" : "0.75" : "Shapes how the movement stops, easing the " +
+		"entity to a halt before it turns back.<br><br>" +
+		"Lower values coast to a stop over a longer distance. The default already reads as a " +
+		"soft landing, so this is worth changing only when the motion looks mechanical."
+	delay(float) : "Start Offset" : "0" : "Seconds to wait before moving for the first time." +
+		"<br><br>" +
+		"Its real use is breaking up a row of bobbing entities that would otherwise move as one. " +
+		"Give each a different offset, or set -1 to have KTX pick a random one, which is easier " +
+		"when there are many."
 ]
 
 @SolidClass base(Appearflags, Targetname, Target, Bmodel) = func_laser : "KTX: damaging laser " +
