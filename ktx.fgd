@@ -30,7 +30,6 @@
 //   CTF, RACE,        Applies only while that game mode is active.
 //   HOONYMODE,
 //   BLOODFEST
-//   Q2 ONLY           Applies only when compiling for Quake II.
 //   REQUIRED          The map fails to load or compile without this key.
 //   BROKEN            Known not to work in the current version.
 //   DEPRECATED        Superseded; retained for compatibility.
@@ -44,6 +43,13 @@
 // Every option on the light command line is also accepted as a worldspawn key.
 // Keys named after a command-line option are grouped at the end of worldspawn.
 // qbsp and vis do not work this way.
+//
+// The compilers also build Quake II maps, and keys that only take effect on a
+// Quake II target are left out of this file. Several features that arrived with
+// Quake II support do work here, though, most notably radiosity surface lights:
+// those are described as belonging to one surface light method or the other,
+// and a key marked "Radiosity method only" does nothing until that method is
+// turned on.
 //
 // KTX ignores keys it does not know and prints "unknown field: <key>" to the
 // server console once per entity, so this file deliberately exposes no key
@@ -204,9 +210,6 @@
 	_sunsamples(integer) : "Sky Dome Sample Count" : 64 : "COMPILER (light): how many lights make " +
 		"up each dome. Higher values give smoother sky shadows and slower compiles. " +
 		"Range 8 to 2048."
-	_sky_surface(color255) : "Sky Surface Emission" : "0 0 0" : "COMPILER (light): makes sky " +
-		"surfaces themselves emit light of this colour, in the manner of ArghRad. " +
-		"Alias: '_sun_surface'."
 ]
 
 @BaseClass = WorldLightDirt [
@@ -256,31 +259,45 @@
 		"values are more accurate and slower. Range 1 to 8192."
 ]
 
+// Surface lights are built by one of two algorithms. Quake maps use subdivision unless the
+// mapper asks for radiosity, and most of the settings below only affect one of the two.
 @BaseClass = WorldLightSurface [
 	_surflight_radiosity(choices) : "Surface Light Method" : 0 : "COMPILER (light): which " +
-		"algorithm turns emissive surfaces into light." =
+		"algorithm turns emissive surfaces into light. Subdivision is the default for Quake " +
+		"maps; radiosity is the default when building for Quake II but is available here, and " +
+		"several of the settings below only take effect once it is turned on." =
 	[
 		0 : "Subdivision - place point lights over the surface"
 		1 : "Radiosity - treat the surface as an area light"
 	]
 	_surflight_subdivide(float) : "Surface Light Spacing" : "128.0" : "COMPILER (light): spacing " +
-		"in units between the point lights placed across an emissive surface in subdivision " +
-		"mode. Range 1 to 2048."
+		"in units between the point lights placed across an emissive surface. Subdivision method " +
+		"only. Range 1 to 2048."
 	_surflightsubdivision(float) : "Radiosity Patch Size" : "16.0" : "COMPILER (light): size in " +
-		"units of the patches an emissive surface is divided into in radiosity mode. " +
-		"Alias: '_choplight'. Range 1 to 8192."
+		"units of the patches an emissive surface is divided into. Radiosity method only, and " +
+		"only when the surface light quality is set to high. Alias: '_choplight'. " +
+		"Range 1 to 8192."
 	_surflightscale(float) : "Surface Light Brightness" : "1.0" : "COMPILER (light): scales the " +
-		"emission of all non-sky surface lights."
+		"emission of all non-sky surface lights. Radiosity method only, with one exception: it " +
+		"also scales the culling threshold for bounce light, so lowering it in a map that uses " +
+		"bounce can dim bounced light as well."
 	_surflightskyscale(float) : "Sky Surface Light Brightness" : "1.0" : "COMPILER (light): " +
-		"scales the emission of sky surface lights."
+		"scales the emission of sky surface lights. Radiosity method only, and only for " +
+		"templates that shine in all directions."
 	_surflightskydist(float) : "Sky Surface Light Distance" : "0.0" : "COMPILER (light): extra " +
 		"distance added when measuring how far a surface is from the sky light that reaches it, " +
-		"which softens and weakens that light."
+		"which softens and weakens that light. Radiosity method only, and only for templates " +
+		"that shine in all directions."
 	_surflight_minlight_scale(float) : "Surface Light Self-Illumination" : "1.0" : "COMPILER " +
 		"(light): scales the minimum light applied to the emissive surface itself, so a light " +
-		"fixture does not render black. 0 disables it. Range 0 to 510."
+		"fixture does not render black. Radiosity method only. 0 disables it. Range 0 to 510."
 	_surflight_atten(float) : "Surface Light Attenuation" : "1.0" : "COMPILER (light): scales how " +
-		"quickly surface light falls off with distance. Higher values fade it sooner."
+		"quickly surface light falls off with distance. Higher values fade it sooner. Radiosity " +
+		"method only."
+	_sky_surface(color255) : "Sky Surface Emission" : "0 0 0" : "COMPILER (light): makes sky " +
+		"surfaces themselves emit light of this colour. Radiosity method only, and only for a " +
+		"surface light template marked as sky emission that does not set its own colour. " +
+		"Alias: '_sun_surface'."
 ]
 
 @BaseClass = WorldLightGrid [
@@ -336,8 +353,10 @@
 		"radius in samples. -1 chooses a radius from the supersampling setting."
 	_gate(float) : "Light Cutoff" : "0.001" : "COMPILER (light): brightness below which a light " +
 		"stops being traced. Raising it speeds up compilation at the cost of very faint light."
-	_emissivequality(choices) : "Surface Light Quality" : "LOW" : "COMPILER (light): how many " +
-		"points on an emissive surface are sampled when lighting another surface." =
+	_emissivequality(choices) : "Emissive Surface Quality" : "LOW" : "COMPILER (light): how many " +
+		"points on a light-emitting surface are sampled when it lights another surface. Affects " +
+		"bounce light, and surface lights under the radiosity method; with neither of those in " +
+		"use it changes nothing." =
 	[
 		"LOW" : "One point at the centre of the face"
 		"MEDIUM" : "Centre plus every vertex"
@@ -351,9 +370,6 @@
 		"vis" : "Use BSP visibility data - slow and precise"
 		"rays" : "Sphere culling with test rays - fast, may miss faces"
 	]
-	_tex_saturation_boost(float) : "Bounce Saturation Boost" : "0.0" : "COMPILER (light): " +
-		"increases the saturation of texture colours used for bounce light, reproducing the look " +
-		"of the original Quake II tools. Range 0 to 1."
 	_nolights(choices) : "Ignore Light Entities" : 0 : "COMPILER (light): compiles using only " +
 		"sunlight and minimum light, ignoring every light entity in the map." =
 	[
@@ -368,12 +384,6 @@
 	]
 	_wrnormals(choices) : "Write Normals Lump" : 0 : "COMPILER (light): stores per-vertex " +
 		"normals, tangents and bitangents in a BSPX lump for engines that use them." =
-	[
-		0 : "Off"
-		1 : "On"
-	]
-	_arghradcompat(choices) : "ArghRad Compatibility" : 0 : "COMPILER (light): interprets " +
-		"ArghRad-specific keys in the map the way ArghRad did." =
 	[
 		0 : "Off"
 		1 : "On"
@@ -538,25 +548,31 @@
 	_world_units_per_luxel(float) : "Lightmap Density" : : "COMPILER (qbsp): size in units of one " +
 		"lightmap pixel on this entity, overriding the map-wide setting. Requires an engine that " +
 		"reads the DECOUPLED_LM lump."
+	_surflight_group(integer) : "Surface Light Group" : 0 : "COMPILER (qbsp): only surface light " +
+		"templates carrying the same group number make this entity's surfaces emit light. " +
+		"Applies to both surface light methods."
+	_surflight_color(color255) : "Surface Light Colour" : : "COMPILER (qbsp): overrides the colour " +
+		"this entity's emissive surfaces give off, which is otherwise taken from the texture. " +
+		"Under the subdivision method this affects nothing but bounce light, and then only when " +
+		"bounce passes and bounce colour bleed are both turned on."
 	_surflight_rescale(choices) : "Surface Light Rescaling" : 1 : "COMPILER (qbsp): rescales the " +
-		"emission of this entity's surface lights by surface area. On by default except on sky." =
+		"emission of this entity's surface lights by surface area. On by default except on sky. " +
+		"Radiosity method only." =
 	[
 		0 : "Off"
 		1 : "On"
 	]
-	_surflight_color(color255) : "Surface Light Colour" : : "COMPILER (qbsp): overrides the colour " +
-		"this entity's emissive surfaces give off, which is otherwise taken from the texture."
 	_surflight_style(integer) : "Surface Light Style" : 0 : "COMPILER (qbsp): animated light style " +
-		"the light from this entity's emissive surfaces uses."
+		"the light from this entity's emissive surfaces uses. Radiosity method only."
 	_surflight_targetname(string) : "Surface Light Switch Name" : : "COMPILER (qbsp): makes the " +
-		"light from this entity's emissive surfaces switchable under this name."
-	_surflight_group(integer) : "Surface Light Group" : 0 : "COMPILER (qbsp): only surface light " +
-		"templates carrying the same group number make this entity's surfaces emit light."
+		"light from this entity's emissive surfaces switchable under this name. Radiosity method " +
+		"only."
 	_surflight_minlight_scale(float) : "Surface Light Self-Illumination" : "1.0" : "COMPILER: " +
 		"scales the minimum light applied to this entity's own emissive surfaces, so a light " +
-		"fixture does not render black."
+		"fixture does not render black. Radiosity method only."
 	_surflight_atten(float) : "Surface Light Attenuation" : "1.0" : "COMPILER: scales how quickly " +
-		"the light from this entity's emissive surfaces falls off with distance."
+		"the light from this entity's emissive surfaces falls off with distance. Radiosity " +
+		"method only."
 	_mirrorinside(choices) : "Mirror Inside Faces" : 0 : "COMPILER (qbsp): generates faces looking " +
 		"inward as well as outward, so the inside of the brush is drawn when the player is " +
 		"inside it." =
@@ -675,10 +691,6 @@
 @SolidClass base(BrushCompiler) = func_illusionary_visblocker : "Brush with no collision that " +
 	"still blocks visibility. Players and shots pass through it while vis treats it as opaque, " +
 	"which allows a visually open doorway to close off the room beyond it." []
-
-@SolidClass base(BrushCompiler, Targetname) = func_areaportal : "Q2 ONLY: closes off visibility " +
-	"between two areas of the map while the door filling it is shut. Must consist of exactly one " +
-	"brush, placed to fill the doorway. Has no effect in a Quake map." []
 
 @PointClass color(128 128 128) size(-8 -8 -8, 8 8 8) = misc_external_map : "COMPILER (qbsp): " +
 	"imports brushes from another .map file at this position. The external file should contain " +
@@ -853,36 +865,34 @@
 	_surface(string) : "Emissive Texture" : : "COMPILER (light): name of a texture that should " +
 		"give off light. This entity stops being a light in its own right and becomes a template: " +
 		"every surface in the map using that texture emits light with these settings."
-	_surface_offset(float) : "Emissive Surface Offset" : "2" : "COMPILER (light): how far in units " +
-		"the emitted light sits in front of the surfaces it comes from."
-	_surface_spotlight(choices) : "Emissive Surface Direction" : 0 : "COMPILER (light): whether " +
-		"the light from each surface is aimed away from that surface instead of shining in all " +
-		"directions." =
-	[
-		0 : "Shine in all directions"
-		1 : "Aim away from the surface"
-	]
-	_surface_radiosity(choices) : "Emissive Surface Method" : 0 : "COMPILER (light): which " +
-		"algorithm this template uses, overriding the map-wide setting." =
+	_surface_radiosity(choices) : "Emissive Surface Method" : 0 : "COMPILER (light): which of the " +
+		"two surface light algorithms this template uses, overriding the map-wide setting. " +
+		"Several keys apply to only one of them." =
 	[
 		0 : "Subdivision - place point lights over the surface"
 		1 : "Radiosity - treat the surface as an area light"
 	]
+	_surface_offset(float) : "Emissive Surface Offset" : "2" : "COMPILER (light): how far in units " +
+		"the emitted light sits in front of the surfaces it comes from. Subdivision method only."
+	_surface_spotlight(choices) : "Emissive Surface Direction" : 0 : "COMPILER (light): whether " +
+		"the light from each surface is aimed away from that surface instead of shining in all " +
+		"directions. Leaving it shining in all directions is also what enables the sky scale and " +
+		"sky distance settings under the radiosity method." =
+	[
+		0 : "Shine in all directions"
+		1 : "Aim away from the surface"
+	]
 	_surface_is_sky(choices) : "Treat As Sky Emission" : 0 : "COMPILER (light): treats the light " +
 		"from this template as sky light, which changes how its emission is scaled by surface " +
-		"area." =
+		"area and lets the worldspawn sky surface emission colour apply to it. Radiosity method " +
+		"only." =
 	[
 		0 : "Ordinary surface light"
 		1 : "Sky light"
 	]
 	_surflight_group(integer) : "Surface Light Group" : 0 : "COMPILER (light): restricts this " +
 		"template to brush entities carrying the same group number, so the same texture can emit " +
-		"differently in different places."
-	_surflight_minlight_scale(float) : "Surface Light Self-Illumination" : "1.0" : "COMPILER " +
-		"(light): scales the minimum light given to the emissive surfaces themselves, so a light " +
-		"fixture does not render black."
-	_surflight_atten(float) : "Surface Light Attenuation" : "1.0" : "COMPILER (light): scales how " +
-		"quickly the light from these surfaces falls off with distance."
+		"differently in different places. Applies to both methods."
 ]
 
 @BaseClass = LightProject [
