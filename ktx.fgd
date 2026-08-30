@@ -173,6 +173,15 @@
 
 //=============================================================================
 // Worldspawn
+//
+// The map itself, and the settings that apply to all of it. Most of what
+// follows is read by the light compiler, which is why the list is so long:
+// the whole of the lighting configuration lives here.
+//
+// Nothing in this section has to be set. A map with an empty worldspawn
+// compiles and plays; the keys are here to take it from lit to well lit. See
+// "Where to start with lighting" at the top of this file for the handful worth
+// setting first.
 //=============================================================================
 
 @BaseClass = WorldEngine [
@@ -466,7 +475,7 @@
 		"only. Range 1 to 2048."
 	_surflightsubdivision(float) : "Radiosity Patch Size" : "16.0" : "COMPILER (light): size in " +
 		"units of the patches an emissive surface is divided into. Radiosity method only, and " +
-		"only when the surface light quality is set to high. Alias: '_choplight'. " +
+		"only when the surface light quality is set to high. Alias: <code>_choplight</code>. " +
 		"Range 1 to 8192."
 	_surflightscale(float) : "Surface Light Brightness" : "1.0" : "COMPILER (light): scales the " +
 		"emission of all non-sky surface lights. Radiosity method only, with one exception: it " +
@@ -488,7 +497,7 @@
 	_sky_surface(color255) : "Sky Surface Emission" : "0 0 0" : "COMPILER (light): makes sky " +
 		"surfaces themselves emit light of this colour. Radiosity method only, and only for a " +
 		"surface light template marked as sky emission that does not set its own colour. " +
-		"Alias: '_sun_surface'."
+		"Alias: <code>_sun_surface</code>."
 ]
 
 @BaseClass = WorldLightGrid [
@@ -540,13 +549,13 @@
 	_extra(choices) : "Supersampling (2x2)" : 1 : "COMPILER (light): samples each lightmap pixel " +
 		"on a 2x2 grid and averages the result, softening the stair-stepping along shadow edges. " +
 		"The value written here is ignored: the key counts as on whenever it is present, even " +
-		"set to 0, so remove it entirely to turn supersampling off. Use '_extra4' for a 4x4 " +
+		"set to 0, so remove it entirely to turn supersampling off. Use <code>_extra4</code> for a 4x4 " +
 		"grid instead; setting both leaves whichever qbsp reads last in effect." =
 	[
 		1 : "On"
 	]
 	_extra4(choices) : "Supersampling (4x4)" : 1 : "COMPILER (light): samples each lightmap pixel " +
-		"on a 4x4 grid, giving smoother shadow edges than '_extra' for a longer compile. The " +
+		"on a 4x4 grid, giving smoother shadow edges than <code>_extra</code> for a longer compile. The " +
 		"value written here is ignored in the same way, so remove the key to turn it off." =
 	[
 		1 : "On"
@@ -693,7 +702,7 @@
 		"minimum light. Alias: <code>_mincolor</code>."
 	_minlight_exclude(string) : "Minimum Light Exclusion" : : "COMPILER (qbsp): name of a texture " +
 		"that is exempt from minimum light on this entity. Nine further exclusions may be added " +
-		"as '_minlight_exclude1' through '_minlight_exclude9'."
+		"as <code>_minlight_exclude1</code> through <code>_minlight_exclude9</code>."
 	_maxlight(float) : "Maximum Light" : : "COMPILER: clamps every face of this entity to at most " +
 		"this light level. Range 0 to 510."
 	_lightcolorscale(float) : "Light Saturation" : "1.0" : "COMPILER: how much colour the lighting " +
@@ -727,14 +736,14 @@
 		"applies to this entity." =
 	[
 		-1 : "Never occlude this entity"
-		0 : "Follow the worldspawn '_dirt' setting"
+		0 : "Follow the worldspawn <code>_dirt</code> setting"
 		1 : "Occlude this entity"
 	]
 	_bounce(choices) : "Bounce Light Emission" : 0 : "COMPILER: whether light bounces off this " +
 		"entity onto its surroundings." =
 	[
 		-1 : "This entity emits no bounce light"
-		0 : "Follow the worldspawn '_bounce' setting"
+		0 : "Follow the worldspawn <code>_bounce</code> setting"
 	]
 	_phong(choices) : "Phong Shading" : 0 : "COMPILER: smooths the lighting across the joins " +
 		"between this entity's faces, so that a curve built from flat panels is lit as though it " +
@@ -818,7 +827,7 @@
 	]
 	_chop_order(integer) : "Face Chop Order" : 0 : "COMPILER (qbsp): controls which brush wins " +
 		"where two brushes overlap and their faces have to be divided. Lower values are cut by " +
-		"higher ones. Replaces the deprecated '_chop' key."
+		"higher ones. Replaces the deprecated <code>_chop</code> key."
 	_hulls(integer) : "Collision Hulls" : 0 : "COMPILER (qbsp): which collision hulls to build for " +
 	"this entity, as a bitmask: 1 for gunfire and other point-sized traces, 2 for players and most " +
 	"monsters, 4 for large monsters such as shamblers. Add the values together to keep more than one. " +
@@ -841,7 +850,7 @@
 	]
 	_litwater(choices) : "Lit Liquid Surfaces" : 1 : "COMPILER (qbsp): subdivides this entity's " +
 		"liquid surfaces so they receive lightmaps, overriding the compiler's own setting. " +
-		"Alias: '_splitturb'." =
+		"Alias: <code>_splitturb</code>." =
 	[
 		0 : "Fullbright liquids"
 		1 : "Lit liquids"
@@ -856,15 +865,15 @@
 		1 : "Mottled"
 	]
 	_shadowself(choices) : "Self Shadowing" : 0 : "COMPILER (light): lets this entity cast shadows " +
-		"onto itself without casting them onto anything else. Overridden by '_shadow'. " +
-		"Alias: '_selfshadow'." =
+		"onto itself without casting them onto anything else. Overridden by <code>_shadow</code>. " +
+		"Alias: <code>_selfshadow</code>." =
 	[
 		0 : "Off"
 		1 : "On"
 	]
 	_shadowworldonly(choices) : "Shadow On World Only" : 0 : "COMPILER (light): lets this entity " +
 		"cast shadows onto the world but not onto itself or other brush models. Overridden by " +
-		"'_shadow'." =
+		"<code>_shadow</code>." =
 	[
 		0 : "Off"
 		1 : "On"
@@ -912,7 +921,7 @@
 @SolidClass base(BrushCompiler) = func_detail_illusionary :
 	"<b>Detail brush with no collision, which players, monsters and shots pass straight " +
 	"through.</b><br><br>It does not split the world faces behind it and casts no shadow unless " +
-	"'_shadow' is set to 1. Suited to hanging vines, cobwebs and similar decoration." []
+	"<code>_shadow</code> is set to 1. Suited to hanging vines, cobwebs and similar decoration." []
 
 @SolidClass base(BrushCompiler) = func_detail_wall : "<b>Detail brush that does not split the world " +
 	"faces behind it, at the cost of some overdraw.</b><br><br>Suited to trim and decoration sitting " +
@@ -945,7 +954,7 @@
 	_external_map_angles(string) : "Rotation" : "0 0 0" : "COMPILER (qbsp): rotation applied to " +
 		"the imported brushes, as 'pitch yaw roll'."
 	_external_map_angle(float) : "Rotation (Yaw Only)" : : "COMPILER (qbsp): rotation around the " +
-		"vertical axis only. Ignored when '_external_map_angles' is set."
+		"vertical axis only. Ignored when <code>_external_map_angles</code> is set."
 	_external_map_scale(string) : "Scale" : "1" : "COMPILER (qbsp): scale applied to the imported " +
 		"brushes, either as one number or as 'x y z'."
 ]
@@ -1066,7 +1075,7 @@
 		"darkens the light this entity casts." =
 	[
 		-1 : "This light is never occluded"
-		0 : "Follow the worldspawn '_dirt' setting"
+		0 : "Follow the worldspawn <code>_dirt</code> setting"
 		1 : "Occlude this light"
 	]
 	_dirtscale(float) : "Ambient Occlusion Strength" : "0" : "COMPILER (light): overrides the " +
@@ -1284,6 +1293,14 @@
 
 //=============================================================================
 // Player starts and map flow
+//
+// Where players appear and where the map sends them afterwards.
+//
+// A deathmatch map needs a good number of info_player_deathmatch entities.
+// KTX picks between them by how dangerous each one is at the moment somebody
+// spawns, so spawns that are safe, spread out and not overlooked by the whole
+// room give it something to work with. A map also wants at least one
+// info_intermission, or the camera between rounds has nowhere to sit.
 //=============================================================================
 
 @BaseClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 32) color(0 255 0)
@@ -1362,6 +1379,14 @@
 
 //=============================================================================
 // Items
+//
+// Pickups. On a deathmatch server the important thing about an item is not the
+// item itself but where it sits and how long it takes to walk between it and
+// the next one, since that is what shapes how a map is played.
+//
+// Items respawn on a timer the server controls, not the map, so there is
+// nothing here to set for that. All of them accept a target, which fires when
+// the item is picked up.
 //=============================================================================
 
 @BaseClass base(Appearflags, Target, Targetname) = Item [
@@ -1742,6 +1767,17 @@
 
 //=============================================================================
 // Doors, platforms and other movers
+//
+// Brush entities that move. Two things are worth knowing before building one.
+//
+// Lighting is baked before the map runs and cannot follow a moving brush, so a
+// mover carries the lighting it had where it was built, and casts no shadow
+// unless told to. Build a door in its closed position and use the start open
+// flag rather than modelling it already open, so that the lighting matches
+// where the brushwork actually is.
+//
+// A mover pushes whatever is in its way and kills what it cannot push. The
+// damage keys below decide how much that hurts.
 //=============================================================================
 
 @BaseClass = DoorSounds [
@@ -1895,6 +1931,13 @@
 
 //=============================================================================
 // Static brush entities
+//
+// Brush entities that never move. Because they are entities rather than world
+// geometry they can be made transparent, given their own lighting treatment or
+// switched off, at the cost of not sealing the map against the void.
+//
+// These are safe to give shadow casting to, unlike the movers above, since
+// nothing about them changes once the map is running.
 //=============================================================================
 
 @SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_wall :
