@@ -446,12 +446,12 @@
 @BaseClass = Race [
 	race_flags(flags) =
 	[
-		1 : "Race: touching fails the run" : 0 : "RACE: a racer who touches this entity fails " +
-			"the current run."
-		2 : "Race: touching ends the run" : 0 : "RACE: a racer who touches this entity finishes " +
-			"the current run."
-		4 : "Race: survives route cleanup" : 0 : "RACE: keeps this entity in the map when race " +
-			"mode removes entities that are not part of the route."
+		1 : "Touching fails the run" : 0 : "RACE: a racer who touches this entity fails the " +
+			"current run."
+		2 : "Touching ends the run" : 0 : "RACE: a racer who touches this entity finishes the " +
+			"current run."
+		4 : "Survives route cleanup" : 0 : "RACE: keeps this entity in the map when race mode " +
+			"removes entities that are not part of the route."
 	]
 ]
 
