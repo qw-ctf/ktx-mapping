@@ -604,9 +604,9 @@
 	_hulls(integer) : "Collision Hulls" : 0 : "COMPILER (qbsp): which collision hulls to build " +
 		"for this entity, as a bitmask: 1 for gunfire and other point-sized traces, 2 for " +
 		"players and most monsters, 4 for large monsters such as shamblers. Add the values " +
-		"together to keep more than one. 0, the default, builds them all.\n" +
-		"\n" +
-		"Dropping a hull saves clipnodes, which a large map can run out of. An entity players " +
+		"together to keep more than one. 0, the default, builds them all.
+
+Dropping a hull saves clipnodes, which a large map can run out of. An entity players " +
 		"can never walk into loses nothing by building only hull 1."
 	_omitbrushes(choices) : "Discard Brushes" : 0 : "COMPILER (qbsp): throws this entity's " +
 		"brushes away during compilation, keeping the entity and its keys. Useful for building " +
@@ -689,9 +689,9 @@
 
 @SolidClass base(BrushCompiler) = func_detail : "Brush that vis ignores, which can cut map " +
 	"compile times dramatically. Detail brushes are solid and do split the world faces behind " +
-	"them, but they do not block visibility, so they never help vis close off parts of the map.\n" +
-	"\n" +
-	"Detail brushes do not seal the map against the void. The shell of the map must be built " +
+	"them, but they do not block visibility, so they never help vis close off parts of the map.
+
+Detail brushes do not seal the map against the void. The shell of the map must be built " +
 	"from ordinary world brushes." []
 
 @SolidClass base(BrushCompiler) = func_detail_illusionary : "Detail brush with no collision, " +
@@ -701,9 +701,9 @@
 
 @SolidClass base(BrushCompiler) = func_detail_wall : "Detail brush that does not split the world " +
 	"faces behind it, at the cost of some overdraw. Suited to trim and decoration sitting " +
-	"against a wall or floor that would otherwise carve up a large flat face.\n" +
-	"\n" +
-	"A world face completely covered by one of these is still clipped away, so this is not " +
+	"against a wall or floor that would otherwise carve up a large flat face.
+
+A world face completely covered by one of these is still clipped away, so this is not " +
 	"suitable for fence textures. Use func_detail_fence for those." []
 
 @SolidClass base(BrushCompiler) = func_detail_fence : "Detail brush that never clips away the " +
@@ -721,9 +721,9 @@
 @PointClass color(128 128 128) size(-8 -8 -8, 8 8 8) = misc_external_map : "COMPILER (qbsp): " +
 	"imports brushes from another .map file at this position. The external file should contain " +
 	"worldspawn brushes only, and its own 'wad' key is ignored, so every texture it uses must be " +
-	"available to this map.\n" +
-	"\n" +
-	"Any other key set here is passed through to the entity the brushes become, so targetname, " +
+	"available to this map.
+
+Any other key set here is passed through to the entity the brushes become, so targetname, " +
 	"lighting keys and the like can be set on the prefab."
 [
 	_external_map(string) : "Map File" : : "COMPILER (qbsp): path to the .map file to import."
@@ -1023,13 +1023,13 @@
 
 @PointClass base(PlayerClass, Targetname) = info_player_deathmatch : "Deathmatch spawn point. " +
 	"KTX places players at these, choosing between them by how dangerous each one is at the " +
-	"moment of spawning.\n" +
-	"\n" +
-	"KTX drops each spawn point to the floor when the map loads, which corrects spawns left " +
+	"moment of spawning.
+
+KTX drops each spawn point to the floor when the map loads, which corrects spawns left " +
 	"floating above the ground. A spawn that would fall more than 64 units is left where the " +
-	"mapper put it, so intentionally raised spawns are preserved.\n" +
-	"\n" +
-	"The spawn keys below equip a player spawning here, which HoonyMode uses to set up a round. " +
+	"mapper put it, so intentionally raised spawns are preserved.
+
+The spawn keys below equip a player spawning here, which HoonyMode uses to set up a round. " +
 	"They have no effect in ordinary deathmatch."
 [
 	spawn_items(flags) =
@@ -1460,9 +1460,9 @@
 
 @SolidClass base(Appearflags, Target, Targetname, Angle, Alpha, Bmodel, DoorSounds) =
 	func_door : "Sliding door. Opens in the direction it faces when a player touches it, shoots " +
-	"it or triggers it, and closes again after a delay.\n" +
-	"\n" +
-	"Doors that touch each other are linked into one, so that opening any part opens the whole " +
+	"it or triggers it, and closes again after a delay.
+
+Doors that touch each other are linked into one, so that opening any part opens the whole " +
 	"door. The key sounds a locked door plays are chosen by the worldtype set in worldspawn."
 [
 	speed(integer) : "Speed" : 100 : "How fast the door moves, in units per second."
@@ -1630,9 +1630,9 @@
 //=============================================================================
 
 @SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob : "KTX: brush model that " +
-	"drifts gently back and forth, for floating platforms and hanging objects.\n" +
-	"\n" +
-	"This entity came from two different mods that gave its flags opposite meanings, and KTX " +
+	"drifts gently back and forth, for floating platforms and hanging objects.
+
+This entity came from two different mods that gave its flags opposite meanings, and KTX " +
 	"implements neither cleanly: setting bit 1 or bit 4 deletes the entity when the map loads, " +
 	"and bit 2 does nothing. Leave the spawnflags at zero."
 [
@@ -1652,9 +1652,9 @@
 
 @SolidClass base(Appearflags, Targetname, Target, Bmodel) = func_laser : "KTX: damaging laser " +
 	"barrier that can be switched on and off, used to block a route or to hurt players who cross " +
-	"it. The brush flickers around its set opacity while active.\n" +
-	"\n" +
-	"A laser that is switched off is moved far out of the map rather than hidden, so it cannot be " +
+	"it. The brush flickers around its set opacity while active.
+
+A laser that is switched off is moved far out of the map rather than hidden, so it cannot be " +
 	"touched while off. Damage is dealt at most three times a second to any one player."
 [
 	dmg(integer) : "Damage" : 1 : "Damage dealt on touch. Set to -1 for a laser that blocks and " +
@@ -1752,9 +1752,9 @@
 
 @PointClass base(Appearflags, Targetname, Angle) size(-8 -8 -8, 8 8 8) color(220 150 150) =
 	trap_shooter : "Fires continuously in the direction it faces, without needing to be " +
-	"triggered.\n" +
-	"\n" +
-	"The KTX source describes a nextthink key for staggering the first shot of several shooters, " +
+	"triggered.
+
+The KTX source describes a nextthink key for staggering the first shot of several shooters, " +
 	"but KTX has no way to read that key from a map, so it is not offered here. Shooters sharing " +
 	"an interval will fire in step."
 [
@@ -1796,18 +1796,18 @@
 	model({ "path": ":progs/flag.mdl", "skin": 0 }) =
 	item_flag_team1 : "CTF: red team flag, and the point it returns to when dropped. KTX drops " +
 	"the flag to the floor on map load and removes it if it cannot find ground below, so place " +
-	"it above a solid surface.\n" +
-	"\n" +
-	"The model depends on server configuration: with custom models turned off the flag is drawn " +
+	"it above a solid surface.
+
+The model depends on server configuration: with custom models turned off the flag is drawn " +
 	"as a key instead." []
 
 @PointClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 40) color(0 0 255)
 	model({ "path": ":progs/flag.mdl", "skin": 1 }) =
 	item_flag_team2 : "CTF: blue team flag, and the point it returns to when dropped. KTX drops " +
 	"the flag to the floor on map load and removes it if it cannot find ground below, so place " +
-	"it above a solid surface.\n" +
-	"\n" +
-	"The model depends on server configuration: with custom models turned off the flag is drawn " +
+	"it above a solid surface.
+
+The model depends on server configuration: with custom models turned off the flag is drawn " +
 	"as a key instead." []
 
 @PointClass base(PlayerClass) color(255 0 0)
@@ -2053,9 +2053,9 @@
 
 @PointClass base(Appearflags, Targetname, Target) size(-8 -8 -8, 8 8 8) color(64 128 64) =
 	func_rotate_door : "Turns a rotate_object between a closed and an open position each time it " +
-	"is triggered, for gates and hatches that swing rather than slide.\n" +
-	"\n" +
-	"Place this entity at the same position as the info_rotate. The angles set here are the open " +
+	"is triggered, for gates and hatches that swing rather than slide.
+
+Place this entity at the same position as the info_rotate. The angles set here are the open " +
 	"position; the brushes start at zero and turn to those angles."
 [
 	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the rotate_object to " +
@@ -2082,9 +2082,9 @@
 
 @SolidClass base(Appearflags, Targetname, Target, Alpha, Bmodel) color(64 128 64) =
 	func_rotate_train : "Brush model that travels between path_rotate entities and can turn as " +
-	"it goes. It is the centre of rotation for everything it targets.\n" +
-	"\n" +
-	"Give it a name to keep it waiting until it is triggered; without one it starts moving as " +
+	"it goes. It is the centre of rotation for everything it targets.
+
+Give it a name to keep it waiting until it is triggered; without one it starts moving as " +
 	"soon as the map loads."
 [
 	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the object this train " +
@@ -2146,9 +2146,9 @@
 @SolidClass base(Appearflags, Targetname, Bmodel) color(0 0 255) = func_movewall : "Invisible " +
 	"collision for a rotating object. Give it the same name as the rotate_object it belongs to " +
 	"and it will travel the same circular path without turning, so that players collide with " +
-	"something where the rotating brushes appear to be.\n" +
-	"\n" +
-	"Because it does not rotate, one movewall can only stand in for a small part of a rotating " +
+	"something where the rotating brushes appear to be.
+
+Because it does not rotate, one movewall can only stand in for a small part of a rotating " +
 	"shape. Cover the volume with several of them."
 [
 	target(target_destination) : "Axis" : : "Name of the info_rotate this wall orbits."
