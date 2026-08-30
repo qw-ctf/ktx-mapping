@@ -594,9 +594,10 @@
 
 @SolidClass base(WorldEngine, WorldKtx, WorldLightCore, WorldLightSun, WorldLightDirt,
 	WorldLightBounce, WorldLightSurface, WorldLightGrid, WorldLightProcess) =
-	worldspawn : "The map itself. Every brush that does not belong to a brush entity is part of " +
-	"worldspawn, and the keys here configure the map as a whole: the compilers read their " +
-	"settings from it, and the server reads the game rules from it."
+	worldspawn :
+	"<b>The map itself.</b><br><br>Every brush that does not belong to a brush entity is part of " +
+	"worldspawn, and the keys here configure the map as a whole: the compilers read their settings from " +
+	"it, and the server reads the game rules from it."
 [
 	message(string) : "Map Title" : : "Name of the map, displayed by some engines on entry. " +
 		"KTX does not read this key, but it is conventional to set it. A \b character toggles " +
@@ -818,13 +819,11 @@
 	_chop_order(integer) : "Face Chop Order" : 0 : "COMPILER (qbsp): controls which brush wins " +
 		"where two brushes overlap and their faces have to be divided. Lower values are cut by " +
 		"higher ones. Replaces the deprecated '_chop' key."
-	_hulls(integer) : "Collision Hulls" : 0 : "COMPILER (qbsp): which collision hulls to build " +
-		"for this entity, as a bitmask: 1 for gunfire and other point-sized traces, 2 for " +
-		"players and most monsters, 4 for large monsters such as shamblers. Add the values " +
-		"together to keep more than one. 0, the default, builds them all.
-
-Dropping a hull saves clipnodes, which a large map can run out of. An entity players " +
-		"can never walk into loses nothing by building only hull 1."
+	_hulls(integer) : "Collision Hulls" : 0 : "COMPILER (qbsp): which collision hulls to build for " +
+	"this entity, as a bitmask: 1 for gunfire and other point-sized traces, 2 for players and most " +
+	"monsters, 4 for large monsters such as shamblers. Add the values together to keep more than one. " +
+	"0, the default, builds them all.<br><br>Dropping a hull saves clipnodes, which a large map can run " +
+	"out of. An entity players can never walk into loses nothing by building only hull 1."
 	_omitbrushes(choices) : "Discard Brushes" : 0 : "COMPILER (qbsp): throws this entity's " +
 		"brushes away during compilation, keeping the entity and its keys. Useful for building " +
 		"guides that should not reach the finished map, and for leaving geometry in the source " +
@@ -904,44 +903,41 @@ Dropping a hull saves clipnodes, which a large map can run out of. An entity pla
 // merged into the world and the entities themselves never reach the server.
 //=============================================================================
 
-@SolidClass base(BrushCompiler) = func_detail : "Brush that vis ignores, which can cut map " +
-	"compile times dramatically. Detail brushes are solid and do split the world faces behind " +
-	"them, but they do not block visibility, so they never help vis close off parts of the map.
+@SolidClass base(BrushCompiler) = func_detail : "<b>Brush that vis ignores, which can cut map " +
+	"compile times dramatically.</b><br><br>Detail brushes are solid and do split the world faces " +
+	"behind them, but they do not block visibility, so they never help vis close off parts of the " +
+	"map.<br><br>Detail brushes do not seal the map against the void. The shell of the map must be " +
+	"built from ordinary world brushes." []
 
-Detail brushes do not seal the map against the void. The shell of the map must be built " +
-	"from ordinary world brushes." []
+@SolidClass base(BrushCompiler) = func_detail_illusionary :
+	"<b>Detail brush with no collision, which players, monsters and shots pass straight " +
+	"through.</b><br><br>It does not split the world faces behind it and casts no shadow unless " +
+	"'_shadow' is set to 1. Suited to hanging vines, cobwebs and similar decoration." []
 
-@SolidClass base(BrushCompiler) = func_detail_illusionary : "Detail brush with no collision, " +
-	"which players, monsters and shots pass straight through. It does not split the world faces " +
-	"behind it and casts no shadow unless '_shadow' is set to 1. Suited to hanging vines, " +
-	"cobwebs and similar decoration." []
+@SolidClass base(BrushCompiler) = func_detail_wall : "<b>Detail brush that does not split the world " +
+	"faces behind it, at the cost of some overdraw.</b><br><br>Suited to trim and decoration sitting " +
+	"against a wall or floor that would otherwise carve up a large flat face.<br><br>A world face " +
+	"completely covered by one of these is still clipped away, so this is not suitable for fence " +
+	"textures. Use func_detail_fence for those." []
 
-@SolidClass base(BrushCompiler) = func_detail_wall : "Detail brush that does not split the world " +
-	"faces behind it, at the cost of some overdraw. Suited to trim and decoration sitting " +
-	"against a wall or floor that would otherwise carve up a large flat face.
+@SolidClass base(BrushCompiler) = func_detail_fence : "<b>Detail brush that never clips away the " +
+	"world faces behind it, so surfaces seen through its transparent texture are " +
+	"preserved.</b><br><br>Suited to grates, railings and fences that are solid and stop shots." []
 
-A world face completely covered by one of these is still clipped away, so this is not " +
-	"suitable for fence textures. Use func_detail_fence for those." []
+@SolidClass base(BrushCompiler) = func_group : "<b>Groups brushes together for organisation in the " +
+	"editor and to apply compiler keys to all of them at once.</b><br><br>The brushes are treated " +
+	"exactly as world brushes and the grouping has no effect in game." []
 
-@SolidClass base(BrushCompiler) = func_detail_fence : "Detail brush that never clips away the " +
-	"world faces behind it, so surfaces seen through its transparent texture are preserved. " +
-	"Suited to grates, railings and fences that are solid and stop shots." []
+@SolidClass base(BrushCompiler) = func_illusionary_visblocker :
+	"<b>Brush with no collision that still blocks visibility.</b><br><br>Players and shots pass through " +
+	"it while vis treats it as opaque, which allows a visually open doorway to close off the room " +
+	"beyond it." []
 
-@SolidClass base(BrushCompiler) = func_group : "Groups brushes together for organisation in the " +
-	"editor and to apply compiler keys to all of them at once. The brushes are treated exactly " +
-	"as world brushes and the grouping has no effect in game." []
-
-@SolidClass base(BrushCompiler) = func_illusionary_visblocker : "Brush with no collision that " +
-	"still blocks visibility. Players and shots pass through it while vis treats it as opaque, " +
-	"which allows a visually open doorway to close off the room beyond it." []
-
-@PointClass color(128 128 128) size(-8 -8 -8, 8 8 8) = misc_external_map : "COMPILER (qbsp): " +
-	"imports brushes from another .map file at this position. The external file should contain " +
-	"worldspawn brushes only, and its own 'wad' key is ignored, so every texture it uses must be " +
-	"available to this map.
-
-Any other key set here is passed through to the entity the brushes become, so targetname, " +
-	"lighting keys and the like can be set on the prefab."
+@PointClass color(128 128 128) size(-8 -8 -8, 8 8 8) = misc_external_map :
+	"<b>COMPILER (qbsp): imports brushes from another .map file at this position.</b><br><br>The " +
+	"external file should contain worldspawn brushes only, and its own 'wad' key is ignored, so every " +
+	"texture it uses must be available to this map.<br><br>Any other key set here is passed through to " +
+	"the entity the brushes become, so targetname, lighting keys and the like can be set on the prefab."
 [
 	_external_map(string) : "Map File" : : "COMPILER (qbsp): path to the .map file to import."
 	_external_map_classname(string) : "Imported Classname" : : "COMPILER (qbsp): classname the " +
@@ -1240,42 +1236,50 @@ Any other key set here is passed through to the entity the brushes become, so ta
 @BaseClass base(Targetname, Appearflags, PointCompiler, LightCore, LightSpot, LightSun,
 	LightSurface, LightProject, LightAdvanced) = CompilerLight []
 
-@PointClass base(CompilerLight, LightStartOff) = light : "Invisible light source. Acts as a point " +
-	"light by default, becomes a spotlight when aimed at a target or given a direction, and can " +
-	"be turned into a sun, a sky dome or an emissive-texture template with the keys below." []
+@PointClass base(CompilerLight, LightStartOff) = light : "<b>Invisible light " +
+	"source.</b><br><br>Acts as a point light by default, becomes a spotlight when aimed at a target or " +
+	"given a direction, and can be turned into a sun, a sky dome or an emissive-texture template with " +
+	"the keys below." []
 
 @PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8)
 	model({ "path": ":progs/s_light.spr" }) =
-	light_globe : "Light source with a visible glowing globe sprite." []
+	light_globe :
+	"Light source with a visible glowing globe sprite." []
 
 @PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8) =
-	light_fluoro : "Invisible light source that also emits a steady fluorescent hum " +
-	"(ambience/fl_hum1.wav) at the position it is placed." []
+	light_fluoro :
+	"Invisible light source that also emits a steady fluorescent hum (ambience/fl_hum1.wav) at the " +
+	"position it is placed." []
 
 @PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8) =
-	light_fluorospark : "Invisible light source that also emits the buzz of a broken fluorescent " +
-	"tube (ambience/buzz1.wav). Uses the fluorescent flicker animation unless another style is " +
+	light_fluorospark :
+	"<b>Invisible light source that also emits the buzz of a broken fluorescent tube " +
+	"(ambience/buzz1.wav).</b><br><br>Uses the fluorescent flicker animation unless another style is " +
 	"set." []
 
 @PointClass base(CompilerLight, LightStartOff) size(-10 -10 -20, 10 10 20)
 	model({ "path": ":progs/flame.mdl" }) =
-	light_torch_small_walltorch : "Wall torch carrying a burning flame model and a crackling fire " +
-	"sound. The model is made static, so it costs no entity slot at runtime." []
+	light_torch_small_walltorch :
+	"<b>Wall torch carrying a burning flame model and a crackling fire sound.</b><br><br>The model is " +
+	"made static, so it costs no entity slot at runtime." []
 
 @PointClass base(CompilerLight, LightStartOff) size(-10 -10 -12, 12 12 18)
 	model({ "path": ":progs/flame2.mdl", "frame": 1 }) =
-	light_flame_large_yellow : "Large yellow flame ball with a burning sound. The model is made " +
-	"static, so it costs no entity slot at runtime." []
+	light_flame_large_yellow :
+	"<b>Large yellow flame ball with a burning sound.</b><br><br>The model is made static, so it costs " +
+	"no entity slot at runtime." []
 
 @PointClass base(CompilerLight, LightStartOff) size(-8 -8 -8, 8 8 8)
 	model({ "path": ":progs/flame2.mdl" }) =
-	light_flame_small_yellow : "Small yellow flame ball with a burning sound. The model is made " +
-	"static, so it costs no entity slot at runtime." []
+	light_flame_small_yellow :
+	"<b>Small yellow flame ball with a burning sound.</b><br><br>The model is made static, so it costs " +
+	"no entity slot at runtime." []
 
 @PointClass base(CompilerLight, LightStartOff) size(-10 -10 -40, 10 10 40)
 	model({ "path": ":progs/flame2.mdl" }) =
-	light_flame_small_white : "Small white flame ball with a burning sound. The model is made " +
-	"static, so it costs no entity slot at runtime." []
+	light_flame_small_white :
+	"<b>Small white flame ball with a burning sound.</b><br><br>The model is made static, so it costs " +
+	"no entity slot at runtime." []
 
 
 //=============================================================================
@@ -1285,24 +1289,22 @@ Any other key set here is passed through to the entity the brushes become, so ta
 @BaseClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 32) color(0 255 0)
 	model({ "path": ":progs/player.mdl" }) = PlayerClass []
 
-@PointClass base(PlayerClass) = info_player_start : "Single-player start. KTX spawns players at " +
-	"info_player_deathmatch, so this is only used when a map is played outside deathmatch." []
+@PointClass base(PlayerClass) = info_player_start : "<b>Single-player start.</b><br><br>KTX spawns " +
+	"players at info_player_deathmatch, so this is only used when a map is played outside deathmatch." []
 
-@PointClass base(PlayerClass) = info_player_start2 : "Return point used when the player comes " +
-	"back to the start map after finishing an episode. Unused in deathmatch." []
+@PointClass base(PlayerClass) = info_player_start2 : "<b>Return point used when the player comes " +
+	"back to the start map after finishing an episode.</b><br><br>Unused in deathmatch." []
 
-@PointClass base(PlayerClass) = info_player_coop : "Cooperative start. Unused in deathmatch." []
+@PointClass base(PlayerClass) = info_player_coop : "<b>Cooperative start.</b><br><br>Unused in " +
+	"deathmatch." []
 
-@PointClass base(PlayerClass, Targetname) = info_player_deathmatch : "Deathmatch spawn point. " +
-	"KTX places players at these, choosing between them by how dangerous each one is at the " +
-	"moment of spawning.
-
-KTX drops each spawn point to the floor when the map loads, which corrects spawns left " +
-	"floating above the ground. A spawn that would fall more than 64 units is left where the " +
-	"mapper put it, so intentionally raised spawns are preserved.
-
-The spawn keys below equip a player spawning here, which HoonyMode uses to set up a round. " +
-	"They have no effect in ordinary deathmatch."
+@PointClass base(PlayerClass, Targetname) = info_player_deathmatch :
+	"<b>Deathmatch spawn point.</b><br><br>KTX places players at these, choosing between them by how " +
+	"dangerous each one is at the moment of spawning.<br><br>KTX drops each spawn point to the floor " +
+	"when the map loads, which corrects spawns left floating above the ground. A spawn that would fall " +
+	"more than 64 units is left where the mapper put it, so intentionally raised spawns are " +
+	"preserved.<br><br>The spawn keys below equip a player spawning here, which HoonyMode uses to set " +
+	"up a round. They have no effect in ordinary deathmatch."
 [
 	spawn_items(flags) =
 	[
@@ -1337,16 +1339,17 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 ]
 
 @PointClass base(Appearflags) size(-16 -16 -16, 16 16 16) color(255 128 128) =
-	info_intermission : "Camera position shown between maps and after a match. Several may be " +
-	"placed, and the game picks between them."
+	info_intermission :
+	"<b>Camera position shown between maps and after a match.</b><br><br>Several may be placed, and the " +
+	"game picks between them."
 [
 	mangle(string) : "Camera Angles" : "0 0 0" : "Direction the camera looks, as " +
 		"'pitch yaw roll'. Negative pitch looks upward. This entity uses mangle rather than " +
 		"angle so that the camera can be tilted as well as turned."
 ]
 
-@SolidClass base(Appearflags, Target, Targetname) = trigger_changelevel : "Sends every player to " +
-	"another map on touch."
+@SolidClass base(Appearflags, Target, Targetname) = trigger_changelevel :
+	"Sends every player to another map on touch."
 [
 	map(string) : "Next Map" : : "File name of the map to load, without the .bsp extension."
 	spawnflags(flags) =
@@ -1377,31 +1380,32 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 @PointClass base(Ammo) model({{
 		spawnflags & 1 -> ":maps/b_shell1.bsp",
 		":maps/b_shell0.bsp"
-	}}) = item_shells : "Shells, for the shotgun and super shotgun. 20 in a small box, 40 in a " +
-	"large one." []
+	}}) = item_shells :
+	"Shells, for the shotgun and super shotgun. 20 in a small box, 40 in a large one." []
 
 @PointClass base(Ammo) model({{
 		spawnflags & 1 -> ":maps/b_nail1.bsp",
 		":maps/b_nail0.bsp"
-	}}) = item_spikes : "Nails, for the nailgun and super nailgun. 25 in a small box, 50 in a " +
-	"large one." []
+	}}) = item_spikes :
+	"Nails, for the nailgun and super nailgun. 25 in a small box, 50 in a large one." []
 
 @PointClass base(Ammo) model({{
 		spawnflags & 1 -> ":maps/b_rock1.bsp",
 		":maps/b_rock0.bsp"
-	}}) = item_rockets : "Rockets, for the grenade launcher and rocket launcher. 5 in a small " +
-	"box, 10 in a large one." []
+	}}) = item_rockets :
+	"Rockets, for the grenade launcher and rocket launcher. 5 in a small box, 10 in a large one." []
 
 @PointClass base(Ammo) model({{
 		spawnflags & 1 -> ":maps/b_batt1.bsp",
 		":maps/b_batt0.bsp"
-	}}) = item_cells : "Cells, for the thunderbolt. 6 in a small box, 12 in a large one." []
+	}}) = item_cells :
+	"Cells, for the thunderbolt. 6 in a small box, 12 in a large one." []
 
-@PointClass base(Ammo) = item_weapon : "Ammunition box from the original Quake entity set, kept " +
-	"so that old maps still load. The flags choose which kind of ammunition it becomes, and it " +
-	"turns itself into the matching item_shells, item_spikes or item_rockets on map load. An " +
-	"entity with none of the ammunition flags set removes itself. New maps should place the " +
-	"ammunition entities directly."
+@PointClass base(Ammo) = item_weapon : "<b>Ammunition box from the original Quake entity set, kept " +
+	"so that old maps still load.</b><br><br>The flags choose which kind of ammunition it becomes, and " +
+	"it turns itself into the matching item_shells, item_spikes or item_rockets on map load. An entity " +
+	"with none of the ammunition flags set removes itself. New maps should place the ammunition " +
+	"entities directly."
 [
 	spawnflags(flags) =
 	[
@@ -1417,9 +1421,9 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 		spawnflags & 2 -> ":maps/b_bh100.bsp",
 		spawnflags & 1 -> ":maps/b_bh10.bsp",
 		":maps/b_bh25.bsp"
-	}}) = item_health : "Health pickup. Restores 25 points by default, 15 as a rotten health " +
-	"vial, or 100 as a megahealth that lifts the player above maximum health and then decays " +
-	"back down."
+	}}) = item_health :
+	"<b>Health pickup.</b><br><br>Restores 25 points by default, 15 as a rotten health vial, or 100 as " +
+	"a megahealth that lifts the player above maximum health and then decays back down."
 [
 	spawnflags(flags) =
 	[
@@ -1431,48 +1435,55 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 
 @PointClass base(Item) size(-16 -16 0, 16 16 56) color(80 0 200)
 	model({ "path": ":progs/armor.mdl", "skin": 0 }) =
-	item_armor1 : "Green armour. 100 points, absorbing 30 percent of incoming damage." []
+	item_armor1 :
+	"Green armour. 100 points, absorbing 30 percent of incoming damage." []
 
 @PointClass base(Item) size(-16 -16 0, 16 16 56) color(80 0 200)
 	model({ "path": ":progs/armor.mdl", "skin": 1 }) =
-	item_armor2 : "Yellow armour. 150 points, absorbing 60 percent of incoming damage." []
+	item_armor2 :
+	"Yellow armour. 150 points, absorbing 60 percent of incoming damage." []
 
 @PointClass base(Item) size(-16 -16 0, 16 16 56) color(80 0 200)
 	model({ "path": ":progs/armor.mdl", "skin": 2 }) =
-	item_armorInv : "Red armour. 200 points, absorbing 80 percent of incoming damage. Note the " +
-	"capital letters in the classname, which KTX matches exactly." []
+	item_armorInv :
+	"<b>Red armour. 200 points, absorbing 80 percent of incoming damage.</b><br><br>Note the capital " +
+	"letters in the classname, which KTX matches exactly." []
 
 @PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
 	model({ "path": ":progs/quaddama.mdl" }) =
-	item_artifact_super_damage : "Quad damage. Multiplies the damage the carrier deals by four " +
-	"for 30 seconds." []
+	item_artifact_super_damage :
+	"<b>Quad damage.</b><br><br>Multiplies the damage the carrier deals by four for 30 seconds." []
 
 @PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
 	model({ "path": ":progs/invulner.mdl" }) =
-	item_artifact_invulnerability : "Pentagram of protection. Makes the carrier immune to damage " +
-	"for 30 seconds, though they can still be telefragged and drowned." []
+	item_artifact_invulnerability :
+	"<b>Pentagram of protection.</b><br><br>Makes the carrier immune to damage for 30 seconds, though " +
+	"they can still be telefragged and drowned." []
 
 @PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
 	model({ "path": ":progs/invisibl.mdl" }) =
-	item_artifact_invisibility : "Ring of shadows. Makes the carrier nearly invisible for 30 " +
-	"seconds, leaving only their eyes visible." []
+	item_artifact_invisibility :
+	"<b>Ring of shadows.</b><br><br>Makes the carrier nearly invisible for 30 seconds, leaving only " +
+	"their eyes visible." []
 
 @PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
 	model({ "path": ":progs/suit.mdl" }) =
-	item_artifact_envirosuit : "Biosuit. Protects the carrier from slime, lava and drowning for " +
-	"30 seconds." []
+	item_artifact_envirosuit :
+	"<b>Biosuit.</b><br><br>Protects the carrier from slime, lava and drowning for 30 seconds." []
 
 @PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
 	model({ "path": ":progs/w_s_key.mdl" }) =
-	item_key1 : "First key of the map. The worldtype set in worldspawn decides what it looks " +
-	"like and what it is called: a silver key in a medieval map, a silver runekey in a runic " +
-	"one, or a security keycard in a base map. The editor always previews the medieval model." []
+	item_key1 :
+	"<b>First key of the map.</b><br><br>The worldtype set in worldspawn decides what it looks like and " +
+	"what it is called: a silver key in a medieval map, a silver runekey in a runic one, or a security " +
+	"keycard in a base map. The editor always previews the medieval model." []
 
 @PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
 	model({ "path": ":progs/w_g_key.mdl" }) =
-	item_key2 : "Second key of the map. The worldtype set in worldspawn decides what it looks " +
-	"like and what it is called: a gold key in a medieval map, a gold runekey in a runic one, or " +
-	"an industrial keycard in a base map. The editor always previews the medieval model." []
+	item_key2 :
+	"<b>Second key of the map.</b><br><br>The worldtype set in worldspawn decides what it looks like " +
+	"and what it is called: a gold key in a medieval map, a gold runekey in a runic one, or an " +
+	"industrial keycard in a base map. The editor always previews the medieval model." []
 
 @PointClass base(Item) size(-16 -16 -24, 16 16 32) color(80 0 200)
 	model({{
@@ -1480,7 +1491,8 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 		spawnflags & 4 -> ":progs/end3.mdl",
 		spawnflags & 8 -> ":progs/end4.mdl",
 		":progs/end1.mdl"
-	}}) = item_sigil : "Rune collected at the end of an episode. Opens the func_episodegate and " +
+	}}) = item_sigil :
+	"<b>Rune collected at the end of an episode.</b><br><br>Opens the func_episodegate and " +
 	"func_bossgate brushes matching the same episode."
 [
 	spawnflags(flags) =
@@ -1500,26 +1512,32 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 @BaseClass base(Item) size(-16 -16 0, 16 16 56) color(0 0 200) = Weapon []
 
 @PointClass base(Weapon) model({ "path": ":progs/g_shot.mdl" }) =
-	weapon_supershotgun : "Super shotgun. Fires both barrels at once for double the damage of " +
-	"the shotgun, and uses two shells a shot." []
+	weapon_supershotgun :
+	"<b>Super shotgun.</b><br><br>Fires both barrels at once for double the damage of the shotgun, and " +
+	"uses two shells a shot." []
 
 @PointClass base(Weapon) model({ "path": ":progs/g_nail.mdl" }) =
-	weapon_nailgun : "Nailgun. Fires a steady stream of nails." []
+	weapon_nailgun :
+	"<b>Nailgun.</b><br><br>Fires a steady stream of nails." []
 
 @PointClass base(Weapon) model({ "path": ":progs/g_nail2.mdl" }) =
-	weapon_supernailgun : "Super nailgun. Fires nails at the same rate as the nailgun but for " +
-	"twice the damage, using two nails a shot." []
+	weapon_supernailgun :
+	"<b>Super nailgun.</b><br><br>Fires nails at the same rate as the nailgun but for twice the damage, " +
+	"using two nails a shot." []
 
 @PointClass base(Weapon) model({ "path": ":progs/g_rock.mdl" }) =
-	weapon_grenadelauncher : "Grenade launcher. Fires grenades that bounce off surfaces and " +
-	"explode on contact with a player or after a short fuse." []
+	weapon_grenadelauncher :
+	"<b>Grenade launcher.</b><br><br>Fires grenades that bounce off surfaces and explode on contact " +
+	"with a player or after a short fuse." []
 
 @PointClass base(Weapon) model({ "path": ":progs/g_rock2.mdl" }) =
-	weapon_rocketlauncher : "Rocket launcher. Fires rockets that explode on impact." []
+	weapon_rocketlauncher :
+	"<b>Rocket launcher.</b><br><br>Fires rockets that explode on impact." []
 
 @PointClass base(Weapon) model({ "path": ":progs/g_light.mdl" }) =
-	weapon_lightning : "Thunderbolt. Fires a continuous lightning beam, and discharges all " +
-	"remaining cells at once if fired under water." []
+	weapon_lightning :
+	"<b>Thunderbolt.</b><br><br>Fires a continuous lightning beam, and discharges all remaining cells " +
+	"at once if fired under water." []
 
 
 //=============================================================================
@@ -1561,21 +1579,22 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 		"axis in both directions, so '16 16 16' gives a box 32 units across."
 ]
 
-@SolidClass base(Trigger, TriggerTouch) = trigger_multiple : "Fires its target whenever a player " +
-	"touches it, and can fire again after a delay."
+@SolidClass base(Trigger, TriggerTouch) = trigger_multiple :
+	"Fires its target whenever a player touches it, and can fire again after a delay."
 [
 	wait(float) : "Rearm Delay" : "0.2" : "Seconds before the trigger can fire again."
 ]
 
-@SolidClass base(Trigger, TriggerTouch) = trigger_once : "Fires its target the first time a " +
-	"player touches it, then never again." []
+@SolidClass base(Trigger, TriggerTouch) = trigger_once : "Fires its target the first time a player " +
+	"touches it, then never again." []
 
-@PointClass base(Trigger) size(-8 -8 -8, 8 8 8) color(128 0 128) = trigger_relay : "Fires its " +
-	"target when another entity fires it. Has no volume and cannot be touched, which makes it " +
-	"the usual way to add a delay or a message to a chain of triggers." []
+@PointClass base(Trigger) size(-8 -8 -8, 8 8 8) color(128 0 128) = trigger_relay :
+	"<b>Fires its target when another entity fires it.</b><br><br>Has no volume and cannot be touched, " +
+	"which makes it the usual way to add a delay or a message to a chain of triggers." []
 
-@SolidClass base(Trigger, TriggerTouch) = trigger_secret : "Counts as a secret when a player " +
-	"first touches it, and fires its target. Adds one to the map's secret total."
+@SolidClass base(Trigger, TriggerTouch) = trigger_secret :
+	"<b>Counts as a secret when a player first touches it, and fires its target.</b><br><br>Adds one to " +
+	"the map's secret total."
 [
 	sounds(choices) : "Discovery Sound" : 1 =
 	[
@@ -1584,13 +1603,13 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 	]
 ]
 
-@SolidClass base(Trigger, TriggerTouch) = trigger_onlyregistered : "Fires its target only for " +
-	"players running the registered version of Quake. Every modern copy is registered, so this " +
-	"is effectively an ordinary trigger." []
+@SolidClass base(Trigger, TriggerTouch) = trigger_onlyregistered :
+	"<b>Fires its target only for players running the registered version of Quake.</b><br><br>Every " +
+	"modern copy is registered, so this is effectively an ordinary trigger." []
 
-@SolidClass base(Appearflags, Target, Targetname, Race) = trigger_teleport : "Teleports whatever " +
-	"touches it to an info_teleport_destination. Giving the teleporter a name stops it working " +
-	"on touch until something fires it."
+@SolidClass base(Appearflags, Target, Targetname, Race) = trigger_teleport :
+	"<b>Teleports whatever touches it to an info_teleport_destination.</b><br><br>Giving the teleporter " +
+	"a name stops it working on touch until something fires it."
 [
 	ktx_votemap(string) : "Vote Map" : : "KTX: name of a map. While no match is in progress, a " +
 		"player who steps into this teleporter casts a vote for that map. This is how map " +
@@ -1604,9 +1623,10 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 ]
 
 @PointClass base(TriggerPoint, Target) size(-16 -16 -16, 16 16 16) =
-	trigger_custom_teleport : "KTX: teleporter defined by a point and a size rather than by " +
-	"brushes, which allows a teleport volume to be placed without building geometry for it. " +
-	"Behaves exactly like trigger_teleport once the map loads."
+	trigger_custom_teleport :
+	"<b>KTX: teleporter defined by a point and a size rather than by brushes, which allows a teleport " +
+	"volume to be placed without building geometry for it.</b><br><br>Behaves exactly like " +
+	"trigger_teleport once the map loads."
 [
 	spawnflags(flags) =
 	[
@@ -1616,9 +1636,10 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 ]
 
 @PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 32) color(128 0 128) =
-	info_teleport_destination : "Exit point of a teleporter. The direction this entity faces is " +
-	"the direction players leave the teleporter looking. KTX raises it 27 units on map load so " +
-	"that a destination placed on the floor puts the player's feet on the floor."
+	info_teleport_destination :
+	"<b>Exit point of a teleporter.</b><br><br>The direction this entity faces is the direction players " +
+	"leave the teleporter looking. KTX raises it 27 units on map load so that a destination placed on " +
+	"the floor puts the player's feet on the floor."
 [
 	angles(string) : "Exit Angles" : "0 0 0" : "Direction players face on arrival, as " +
 		"'pitch yaw roll'."
@@ -1626,9 +1647,9 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 		"The map fails to load without it."
 ]
 
-@SolidClass base(Appearflags, Targetname, Race) = trigger_push : "Pushes whatever touches it in " +
-	"the direction it faces, which is how wind tunnels and jump pads are built. Grenades are " +
-	"pushed as well as players."
+@SolidClass base(Appearflags, Targetname, Race) = trigger_push :
+	"<b>Pushes whatever touches it in the direction it faces, which is how wind tunnels and jump pads " +
+	"are built.</b><br><br>Grenades are pushed as well as players."
 [
 	angle(integer) : "Push Direction" : 0 : "Direction to push, in degrees. Use -1 for straight " +
 		"up and -2 for straight down."
@@ -1640,8 +1661,9 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 ]
 
 @PointClass base(TriggerPoint) size(-16 -16 -16, 16 16 16) =
-	trigger_custom_push : "KTX: push trigger defined by a point and a size rather than by " +
-	"brushes. Behaves exactly like trigger_push once the map loads."
+	trigger_custom_push :
+	"<b>KTX: push trigger defined by a point and a size rather than by brushes.</b><br><br>Behaves " +
+	"exactly like trigger_push once the map loads."
 [
 	angle(integer) : "Push Direction" : 0 : "Direction to push, in degrees. Use -1 for straight " +
 		"up and -2 for straight down."
@@ -1652,16 +1674,16 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 	]
 ]
 
-@SolidClass base(Appearflags, Targetname, Race) = trigger_hurt : "Injures whatever touches it. " +
-	"After hurting something the trigger goes quiet for one second, so standing in it costs the " +
-	"stated damage about once a second."
+@SolidClass base(Appearflags, Targetname, Race) = trigger_hurt :
+	"<b>Injures whatever touches it.</b><br><br>After hurting something the trigger goes quiet for one " +
+	"second, so standing in it costs the stated damage about once a second."
 [
 	dmg(integer) : "Damage" : 5 : "Damage dealt each time the trigger fires."
 ]
 
-@SolidClass base(Appearflags, Targetname, Race) = trigger_heal : "KTX: heals players who walk " +
-	"into it, up to a limit, with a pause between one player's heals. Inactive while the server " +
-	"is waiting for a match to start."
+@SolidClass base(Appearflags, Targetname, Race) = trigger_heal :
+	"<b>KTX: heals players who walk into it, up to a limit, with a pause between one player's " +
+	"heals.</b><br><br>Inactive while the server is waiting for a match to start."
 [
 	heal_amount(integer) : "Heal Amount" : 5 : "KTX: health restored each time a player is healed."
 	wait(float) : "Heal Interval" : "1" : "KTX: seconds a player must wait between heals."
@@ -1669,8 +1691,9 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 		"is healed."
 ]
 
-@SolidClass base(Appearflags, Targetname, Race) = trigger_monsterjump : "Makes walking monsters " +
-	"that touch it leap in the direction it faces. Has no effect on players."
+@SolidClass base(Appearflags, Targetname, Race) = trigger_monsterjump :
+	"<b>Makes walking monsters that touch it leap in the direction it faces.</b><br><br>Has no effect " +
+	"on players."
 [
 	angle(integer) : "Jump Direction" : 0 : "Direction to throw monsters, in degrees. Use 360 " +
 		"for due east."
@@ -1679,16 +1702,17 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 ]
 
 @PointClass base(TriggerPoint) size(-16 -16 -16, 16 16 16) =
-	trigger_custom_monsterjump : "KTX: monster jump trigger defined by a point and a size rather " +
-	"than by brushes. Behaves exactly like trigger_monsterjump once the map loads."
+	trigger_custom_monsterjump :
+	"<b>KTX: monster jump trigger defined by a point and a size rather than by " +
+	"brushes.</b><br><br>Behaves exactly like trigger_monsterjump once the map loads."
 [
 	angle(integer) : "Jump Direction" : 0 : "Direction to throw monsters, in degrees."
 	speed(integer) : "Forward Speed" : 200 : "How hard monsters are thrown forwards."
 	height(integer) : "Jump Height" : 200 : "How hard monsters are thrown upwards."
 ]
 
-@SolidClass base(Appearflags) = trigger_setskill : "Sets the server's skill level when a player " +
-	"touches it, as used on the original start map. KTX removes this entity in deathmatch."
+@SolidClass base(Appearflags) = trigger_setskill : "<b>Sets the server's skill level when a player " +
+	"touches it, as used on the original start map.</b><br><br>KTX removes this entity in deathmatch."
 [
 	message(choices) : "Skill Level" : "1" =
 	[
@@ -1700,8 +1724,9 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 ]
 
 @PointClass base(Appearflags, Target, Targetname) size(-8 -8 -8, 8 8 8) color(128 0 128) =
-	trigger_counter : "Fires its target only after being triggered a set number of times. Acts " +
-	"as a counter for switches or buttons that must all be activated."
+	trigger_counter :
+	"<b>Fires its target only after being triggered a set number of times.</b><br><br>Acts as a counter " +
+	"for switches or buttons that must all be activated."
 [
 	count(integer) : "Activations Required" : 2 : "How many times this entity must be triggered " +
 		"before it fires its target."
@@ -1731,11 +1756,11 @@ The spawn keys below equip a player spawning here, which HoonyMode uses to set u
 ]
 
 @SolidClass base(Appearflags, Target, Targetname, Angle, Alpha, Bmodel, DoorSounds) =
-	func_door : "Sliding door. Opens in the direction it faces when a player touches it, shoots " +
-	"it or triggers it, and closes again after a delay.
-
-Doors that touch each other are linked into one, so that opening any part opens the whole " +
-	"door. The key sounds a locked door plays are chosen by the worldtype set in worldspawn."
+	func_door :
+	"<b>Sliding door.</b><br><br>Opens in the direction it faces when a player touches it, shoots it or " +
+	"triggers it, and closes again after a delay.<br><br>Doors that touch each other are linked into " +
+	"one, so that opening any part opens the whole door. The key sounds a locked door plays are chosen " +
+	"by the worldtype set in worldspawn."
 [
 	speed(integer) : "Speed" : 100 : "How fast the door moves, in units per second."
 	lip(integer) : "Lip" : 8 : "How many units of the door remain visible when it is fully open."
@@ -1758,9 +1783,9 @@ Doors that touch each other are linked into one, so that opening any part opens 
 	]
 ]
 
-@SolidClass base(Appearflags, Target, Targetname, Alpha, Bmodel) = func_door_secret : "Hidden " +
-	"door that slides aside in two stages when opened, revealing a passage. Opens when shot or " +
-	"triggered."
+@SolidClass base(Appearflags, Target, Targetname, Alpha, Bmodel) = func_door_secret :
+	"<b>Hidden door that slides aside in two stages when opened, revealing a passage.</b><br><br>Opens " +
+	"when shot or triggered."
 [
 	angle(integer) : "Direction Of Second Move" : 0 : "Direction the door travels on the second " +
 		"stage of its movement, in degrees."
@@ -1788,9 +1813,9 @@ Doors that touch each other are linked into one, so that opening any part opens 
 	]
 ]
 
-@SolidClass base(Appearflags, Target, Targetname, Angle, Alpha, Bmodel) = func_button : "Button " +
-	"that presses inward when used and fires its target. Returns to its resting position after a " +
-	"delay, or stays in once pressed."
+@SolidClass base(Appearflags, Target, Targetname, Angle, Alpha, Bmodel) = func_button :
+	"<b>Button that presses inward when used and fires its target.</b><br><br>Returns to its resting " +
+	"position after a delay, or stays in once pressed."
 [
 	speed(integer) : "Speed" : 40 : "How fast the button moves, in units per second."
 	lip(integer) : "Lip" : 4 : "How many units of the button remain visible when fully pressed."
@@ -1810,8 +1835,9 @@ Doors that touch each other are linked into one, so that opening any part opens 
 	]
 ]
 
-@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_plat : "Platform that lowers when " +
-	"a player steps onto it and rises again afterwards, or waits at the bottom until triggered."
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_plat :
+	"Platform that lowers when a player steps onto it and rises again afterwards, or waits at the " +
+	"bottom until triggered."
 [
 	speed(integer) : "Speed" : 150 : "How fast the platform moves, in units per second."
 	height(integer) : "Travel Distance" : 0 : "How far the platform travels, in units. Left at 0 " +
@@ -1830,9 +1856,9 @@ Doors that touch each other are linked into one, so that opening any part opens 
 	]
 ]
 
-@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_train : "Platform that travels " +
-	"between path_corner entities, carrying players with it. It starts at the path_corner it " +
-	"targets, and moves continuously unless it is triggered into motion."
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_train :
+	"<b>Platform that travels between path_corner entities, carrying players with it.</b><br><br>It " +
+	"starts at the path_corner it targets, and moves continuously unless it is triggered into motion."
 [
 	target(target_destination) : "First Stop" : : "REQUIRED: name of the path_corner the train " +
 		"starts at and moves towards first."
@@ -1846,8 +1872,8 @@ Doors that touch each other are linked into one, so that opening any part opens 
 ]
 
 @PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8) color(0 255 255) =
-	path_corner : "Waypoint on the route of a func_train, and a patrol point that monsters walk " +
-	"between."
+	path_corner :
+	"Waypoint on the route of a func_train, and a patrol point that monsters walk between."
 [
 	target(target_destination) : "Next Stop" : : "Name of the next path_corner on the route."
 	wait(float) : "Wait Here" : "0" : "Seconds to pause at this corner before moving on. -1 " +
@@ -1856,8 +1882,9 @@ Doors that touch each other are linked into one, so that opening any part opens 
 
 @PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8)
 	model({ "path": ":progs/teleport.mdl" }) =
-	misc_teleporttrain : "Flying spiked ball that travels between path_corner entities. Used in " +
-	"the original game as a moving teleporter destination."
+	misc_teleporttrain :
+	"<b>Flying spiked ball that travels between path_corner entities.</b><br><br>Used in the original " +
+	"game as a moving teleporter destination."
 [
 	target(target_destination) : "First Stop" : : "REQUIRED: name of the path_corner it starts " +
 		"at and moves towards first."
@@ -1870,18 +1897,19 @@ Doors that touch each other are linked into one, so that opening any part opens 
 // Static brush entities
 //=============================================================================
 
-@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_wall : "Solid brush model that " +
-	"stays where it is put. Being an entity rather than world geometry, it does not seal the map " +
-	"and can be made transparent or excluded from lighting effects. If its texture has animation " +
-	"frames, triggering the wall switches between them." []
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_wall :
+	"<b>Solid brush model that stays where it is put.</b><br><br>Being an entity rather than world " +
+	"geometry, it does not seal the map and can be made transparent or excluded from lighting effects. " +
+	"If its texture has animation frames, triggering the wall switches between them." []
 
-@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_illusionary : "Brush model with " +
-	"no collision. Players, monsters and shots pass straight through it, while it still draws " +
-	"and still receives lighting. Suited to decoration that should not get in the way." []
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_illusionary :
+	"<b>Brush model with no collision.</b><br><br>Players, monsters and shots pass straight through it, " +
+	"while it still draws and still receives lighting. Suited to decoration that should not get in the " +
+	"way." []
 
-@SolidClass base(Appearflags, Alpha, Bmodel) = func_episodegate : "Barrier that removes itself " +
-	"once the player carries the rune for a matching episode, opening the way beyond it. Used on " +
-	"the original start map."
+@SolidClass base(Appearflags, Alpha, Bmodel) = func_episodegate :
+	"<b>Barrier that removes itself once the player carries the rune for a matching episode, opening " +
+	"the way beyond it.</b><br><br>Used on the original start map."
 [
 	spawnflags(flags) =
 	[
@@ -1892,25 +1920,24 @@ Doors that touch each other are linked into one, so that opening any part opens 
 	]
 ]
 
-@SolidClass base(Appearflags, Alpha, Bmodel) = func_bossgate : "Barrier that removes itself once " +
-	"the player carries all four episode runes, opening the way to the final level. Used on the " +
-	"original start map." []
+@SolidClass base(Appearflags, Alpha, Bmodel) = func_bossgate :
+	"<b>Barrier that removes itself once the player carries all four episode runes, opening the way to " +
+	"the final level.</b><br><br>Used on the original start map." []
 
 
 //=============================================================================
 // KTX brush entities
 //=============================================================================
 
-@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob : "<b>KTX: brush model that " +
-	"drifts gently back and forth, for floating platforms and hanging objects.</b><br><br>" +
-	"The movement is a slow drift rather than a mechanical cycle: the entity eases away from " +
-	"its resting position, slows, turns and comes back, so a platform built with it never quite " +
-	"repeats in step with anything else. Set the direction, how far it travels and how long a " +
-	"cycle takes, and leave the two curve keys alone unless the motion needs to feel heavier " +
-	"or lighter.<br><br>" +
-	"<b><font color='#d9534f'>The spawnflags do not work.</font></b> This entity was taken from " +
-	"two different mods that gave the same bits opposite meanings, and KTX implements neither " +
-	"cleanly: bit 1 and bit 4 both delete the entity as the map loads, and bit 2 does nothing " +
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob :
+	"<b>KTX: brush model that drifts gently back and forth, for floating platforms and hanging " +
+	"objects.</b><br><br>The movement is a slow drift rather than a mechanical cycle: the entity eases " +
+	"away from its resting position, slows, turns and comes back, so a platform built with it never " +
+	"quite repeats in step with anything else. Set the direction, how far it travels and how long a " +
+	"cycle takes, and leave the two curve keys alone unless the motion needs to feel heavier or " +
+	"lighter.<br><br><b><font color='#d9534f'>The spawnflags do not work.</font></b> This entity was " +
+	"taken from two different mods that gave the same bits opposite meanings, and KTX implements " +
+	"neither cleanly: bit 1 and bit 4 both delete the entity as the map loads, and bit 2 does nothing " +
 	"at all. Leave the flags at zero."
 [
 	angle(integer) : "Movement Direction" : 0 : "Direction the entity drifts, in degrees.<br><br>" +
@@ -1938,12 +1965,11 @@ Doors that touch each other are linked into one, so that opening any part opens 
 		"when there are many."
 ]
 
-@SolidClass base(Appearflags, Targetname, Target, Bmodel) = func_laser : "KTX: damaging laser " +
-	"barrier that can be switched on and off, used to block a route or to hurt players who cross " +
-	"it. The brush flickers around its set opacity while active.
-
-A laser that is switched off is moved far out of the map rather than hidden, so it cannot be " +
-	"touched while off. Damage is dealt at most three times a second to any one player."
+@SolidClass base(Appearflags, Targetname, Target, Bmodel) = func_laser :
+	"<b>KTX: damaging laser barrier that can be switched on and off, used to block a route or to hurt " +
+	"players who cross it.</b><br><br>The brush flickers around its set opacity while active.<br><br>A " +
+	"laser that is switched off is moved far out of the map rather than hidden, so it cannot be touched " +
+	"while off. Damage is dealt at most three times a second to any one player."
 [
 	dmg(integer) : "Damage" : 1 : "Damage dealt on touch. Set to -1 for a laser that blocks and " +
 		"startles without hurting."
@@ -1992,8 +2018,8 @@ A laser that is switched off is moved far out of the map rather than hidden, so 
 @PointClass base(Ambient) = ambient_drip : "Looping sound of dripping water." []
 @PointClass base(Ambient) = ambient_drone : "Looping sound of machinery or an engine." []
 @PointClass base(Ambient) = ambient_comp_hum : "Looping hum of computer equipment." []
-@PointClass base(Ambient) = ambient_flouro_buzz : "Looping buzz of a fluorescent tube. Note the " +
-	"misspelling in the classname, which KTX matches exactly." []
+@PointClass base(Ambient) = ambient_flouro_buzz : "<b>Looping buzz of a fluorescent " +
+	"tube.</b><br><br>Note the misspelling in the classname, which KTX matches exactly." []
 @PointClass base(Ambient) = ambient_light_buzz : "Looping electrical buzz of a light fitting." []
 @PointClass base(Ambient) = ambient_suck_wind : "Looping sound of wind." []
 @PointClass base(Ambient) = ambient_swamp1 : "Looping sound of croaking frogs." []
@@ -2001,9 +2027,9 @@ A laser that is switched off is moved far out of the map rather than hidden, so 
 @PointClass base(Ambient) = ambient_thunder : "Looping sound of distant thunder." []
 
 @PointClass base(Appearflags) size(-10 -10 -10, 10 10 10) color(64 32 192) =
-	misc_noisemaker : "Plays a burst of enforcer sounds twice a second, without pause. This " +
-	"exists to load the sound system for performance testing and has no place in a finished " +
-	"map." []
+	misc_noisemaker :
+	"<b>Plays a burst of enforcer sounds twice a second, without pause.</b><br><br>This exists to load " +
+	"the sound system for performance testing and has no place in a finished map." []
 
 
 //=============================================================================
@@ -2012,24 +2038,27 @@ A laser that is switched off is moved far out of the map rather than hidden, so 
 
 @PointClass base(Appearflags) size(-8 -8 -8, 8 8 8) color(220 150 150)
 	model({ "path": ":progs/lavaball.mdl" }) =
-	misc_fireball : "Launches lava balls upward at random intervals. They arc back down and hurt " +
-	"whatever they land on, as seen over the lava pits of the original game."
+	misc_fireball :
+	"<b>Launches lava balls upward at random intervals.</b><br><br>They arc back down and hurt whatever " +
+	"they land on, as seen over the lava pits of the original game."
 [
 	speed(integer) : "Launch Speed" : 40 : "How hard the lava balls are thrown upwards."
 ]
 
 @PointClass base(Appearflags) size(0 0 0, 32 32 64) color(220 150 150)
 	model({ "path": ":maps/b_explob.bsp" }) =
-	misc_explobox : "Large explosive barrel. Explodes when shot, damaging everything nearby and " +
-	"setting off other barrels in range." []
+	misc_explobox :
+	"<b>Large explosive barrel.</b><br><br>Explodes when shot, damaging everything nearby and setting " +
+	"off other barrels in range." []
 
 @PointClass base(Appearflags) size(0 0 0, 32 32 32) color(220 150 150)
 	model({ "path": ":maps/b_exbox2.bsp" }) =
-	misc_explobox2 : "Small explosive barrel. Behaves like the large one with a smaller blast." []
+	misc_explobox2 :
+	"<b>Small explosive barrel.</b><br><br>Behaves like the large one with a smaller blast." []
 
 @PointClass base(Appearflags, Targetname, Angle) size(-8 -8 -8, 8 8 8) color(220 150 150) =
-	trap_spikeshooter : "Fires a single spike in the direction it faces each time it is " +
-	"triggered."
+	trap_spikeshooter :
+	"Fires a single spike in the direction it faces each time it is triggered."
 [
 	spawnflags(flags) =
 	[
@@ -2039,12 +2068,11 @@ A laser that is switched off is moved far out of the map rather than hidden, so 
 ]
 
 @PointClass base(Appearflags, Targetname, Angle) size(-8 -8 -8, 8 8 8) color(220 150 150) =
-	trap_shooter : "Fires continuously in the direction it faces, without needing to be " +
-	"triggered.
-
-The KTX source describes a nextthink key for staggering the first shot of several shooters, " +
-	"but KTX has no way to read that key from a map, so it is not offered here. Shooters sharing " +
-	"an interval will fire in step."
+	trap_shooter :
+	"<b>Fires continuously in the direction it faces, without needing to be triggered.<br><br>The KTX " +
+	"source describes a nextthink key for staggering the first shot of several shooters, but KTX has no " +
+	"way to read that key from a map, so it is not offered here.</b><br><br>Shooters sharing an " +
+	"interval will fire in step."
 [
 	wait(float) : "Interval" : "1" : "Seconds between shots."
 	spawnflags(flags) =
@@ -2060,17 +2088,20 @@ The KTX source describes a nextthink key for staggering the first shot of severa
 //=============================================================================
 
 @PointClass base(Appearflags, Targetname, PointCompiler) size(-4 -4 -4, 4 4 4) color(0 128 0) =
-	info_null : "Marker that removes itself as soon as the map loads. Its purpose is to give a " +
-	"light entity something to aim at: the light compiler reads its position while building the " +
-	"lightmap, and nothing remains at runtime." []
+	info_null :
+	"<b>Marker that removes itself as soon as the map loads.</b><br><br>Its purpose is to give a light " +
+	"entity something to aim at: the light compiler reads its position while building the lightmap, and " +
+	"nothing remains at runtime." []
 
 @PointClass base(Appearflags, Targetname, PointCompiler) size(-4 -4 -4, 4 4 4) color(0 128 0) =
-	info_notnull : "Marker that stays in the map, for entities that need a position to aim at or " +
-	"move towards while the map is running. Does nothing on its own." []
+	info_notnull :
+	"<b>Marker that stays in the map, for entities that need a position to aim at or move towards while " +
+	"the map is running.</b><br><br>Does nothing on its own." []
 
 @PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8) color(220 0 0) =
-	event_lightning : "Triggers the lightning strike that kills Chthon. Fires when triggered and " +
-	"is only meaningful on a map containing monster_boss." []
+	event_lightning :
+	"<b>Triggers the lightning strike that kills Chthon.</b><br><br>Fires when triggered and is only " +
+	"meaningful on a map containing monster_boss." []
 
 
 //=============================================================================
@@ -2082,66 +2113,71 @@ The KTX source describes a nextthink key for staggering the first shot of severa
 
 @PointClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 40) color(255 0 0)
 	model({ "path": ":progs/flag.mdl", "skin": 0 }) =
-	item_flag_team1 : "CTF: red team flag, and the point it returns to when dropped. KTX drops " +
-	"the flag to the floor on map load and removes it if it cannot find ground below, so place " +
-	"it above a solid surface.
-
-The model depends on server configuration: with custom models turned off the flag is drawn " +
-	"as a key instead." []
+	item_flag_team1 :
+	"<b>CTF: red team flag, and the point it returns to when dropped.</b><br><br>KTX drops the flag to " +
+	"the floor on map load and removes it if it cannot find ground below, so place it above a solid " +
+	"surface.<br><br>The model depends on server configuration: with custom models turned off the flag " +
+	"is drawn as a key instead." []
 
 @PointClass base(Appearflags, Angle) size(-16 -16 -24, 16 16 40) color(0 0 255)
 	model({ "path": ":progs/flag.mdl", "skin": 1 }) =
-	item_flag_team2 : "CTF: blue team flag, and the point it returns to when dropped. KTX drops " +
-	"the flag to the floor on map load and removes it if it cannot find ground below, so place " +
-	"it above a solid surface.
-
-The model depends on server configuration: with custom models turned off the flag is drawn " +
-	"as a key instead." []
-
-@PointClass base(PlayerClass) color(255 0 0)
-	model({ "path": ":progs/player.mdl" }) =
-	info_player_team1 : "CTF: red team spawn point." []
-
-@PointClass base(PlayerClass) color(0 0 255)
-	model({ "path": ":progs/player.mdl" }) =
-	info_player_team2 : "CTF: blue team spawn point." []
+	item_flag_team2 :
+	"<b>CTF: blue team flag, and the point it returns to when dropped.</b><br><br>KTX drops the flag to " +
+	"the floor on map load and removes it if it cannot find ground below, so place it above a solid " +
+	"surface.<br><br>The model depends on server configuration: with custom models turned off the flag " +
+	"is drawn as a key instead." []
 
 @PointClass base(PlayerClass) color(255 0 0)
 	model({ "path": ":progs/player.mdl" }) =
-	info_player_team1_deathmatch : "CTF: red team spawn point used when the server is configured " +
-	"to spawn teams at their own bases." []
+	info_player_team1 :
+	"CTF: red team spawn point." []
 
 @PointClass base(PlayerClass) color(0 0 255)
 	model({ "path": ":progs/player.mdl" }) =
-	info_player_team2_deathmatch : "CTF: blue team spawn point used when the server is configured " +
-	"to spawn teams at their own bases." []
+	info_player_team2 :
+	"CTF: blue team spawn point." []
+
+@PointClass base(PlayerClass) color(255 0 0)
+	model({ "path": ":progs/player.mdl" }) =
+	info_player_team1_deathmatch :
+	"CTF: red team spawn point used when the server is configured to spawn teams at their own bases." []
+
+@PointClass base(PlayerClass) color(0 0 255)
+	model({ "path": ":progs/player.mdl" }) =
+	info_player_team2_deathmatch :
+	"CTF: blue team spawn point used when the server is configured to spawn teams at their own bases." []
 
 @PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(50 205 50)
 	model({ "path": ":progs/end1.mdl" }) =
-	item_rune_res : "CTF: position the resistance rune returns to. The rune itself is created by " +
-	"the server; only this entity's position matters, and every other key on it is ignored. The " +
-	"rune appears 24 units below the point placed here." []
-
-@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(178 34 34)
-	model({ "path": ":progs/end2.mdl" }) =
-	item_rune_str : "CTF: position the strength rune returns to. The rune itself is created by " +
-	"the server; only this entity's position matters, and every other key on it is ignored. The " +
-	"rune appears 24 units below the point placed here." []
-
-@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(255 255 153)
-	model({ "path": ":progs/end3.mdl" }) =
-	item_rune_hst : "CTF: position the haste rune returns to. The rune itself is created by the " +
+	item_rune_res :
+	"<b>CTF: position the resistance rune returns to.</b><br><br>The rune itself is created by the " +
 	"server; only this entity's position matters, and every other key on it is ignored. The rune " +
 	"appears 24 units below the point placed here." []
 
+@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(178 34 34)
+	model({ "path": ":progs/end2.mdl" }) =
+	item_rune_str :
+	"<b>CTF: position the strength rune returns to.</b><br><br>The rune itself is created by the " +
+	"server; only this entity's position matters, and every other key on it is ignored. The rune " +
+	"appears 24 units below the point placed here." []
+
+@PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(255 255 153)
+	model({ "path": ":progs/end3.mdl" }) =
+	item_rune_hst :
+	"<b>CTF: position the haste rune returns to.</b><br><br>The rune itself is created by the server; " +
+	"only this entity's position matters, and every other key on it is ignored. The rune appears 24 " +
+	"units below the point placed here." []
+
 @PointClass base(Appearflags) size(-16 -16 -24, 16 16 32) color(137 207 240)
 	model({ "path": ":progs/end4.mdl" }) =
-	item_rune_rgn : "CTF: position the regeneration rune returns to. The rune itself is created " +
-	"by the server; only this entity's position matters, and every other key on it is ignored. " +
-	"The rune appears 24 units below the point placed here." []
+	item_rune_rgn :
+	"<b>CTF: position the regeneration rune returns to.</b><br><br>The rune itself is created by the " +
+	"server; only this entity's position matters, and every other key on it is ignored. The rune " +
+	"appears 24 units below the point placed here." []
 
-@SolidClass base(Appearflags, Alpha, Bmodel) = func_ctf_wall : "CTF: solid brush model, used for " +
-	"barriers that belong to the CTF layout of a map. Behaves as a plain solid wall." []
+@SolidClass base(Appearflags, Alpha, Bmodel) = func_ctf_wall :
+	"<b>CTF: solid brush model, used for barriers that belong to the CTF layout of a " +
+	"map.</b><br><br>Behaves as a plain solid wall." []
 
 
 //=============================================================================
@@ -2159,8 +2195,9 @@ The model depends on server configuration: with custom models turned off the fla
 
 @PointClass base(Appearflags, Target, Targetname, Race) size(-16 -16 -16, 16 16 16)
 	color(255 128 0) =
-	race_route_start : "RACE: starting line of a race route, and the entity that carries the " +
-	"route's settings. Its target names the first marker on the route."
+	race_route_start :
+	"<b>RACE: starting line of a race route, and the entity that carries the route's " +
+	"settings.</b><br><br>Its target names the first marker on the route."
 [
 	race_route_name(string) : "Route Name" : : "RACE: short name of the route, shown to players " +
 		"choosing between routes."
@@ -2191,8 +2228,9 @@ The model depends on server configuration: with custom models turned off the fla
 
 @PointClass base(Appearflags, Target, Targetname, Race) size(-16 -16 -16, 16 16 16)
 	color(255 128 0) =
-	race_route_marker : "RACE: checkpoint on a race route. Its target names the next marker; the " +
-	"marker that targets nothing is the finish line."
+	race_route_marker :
+	"<b>RACE: checkpoint on a race route.</b><br><br>Its target names the next marker; the marker that " +
+	"targets nothing is the finish line."
 [
 	size(string) : "Trigger Size" : "16 16 16" : "RACE: half the size of the checkpoint volume " +
 		"in units, as 'x y z'."
@@ -2228,46 +2266,58 @@ The model depends on server configuration: with custom models turned off the fla
 ]
 
 @PointClass base(Monster) model({ "path": ":progs/soldier.mdl" }) =
-	monster_army : "Grunt. Fires a shotgun at range." []
+	monster_army :
+	"<b>Grunt.</b><br><br>Fires a shotgun at range." []
 
 @PointClass base(Monster) size(-32 -32 -24, 32 32 40) model({ "path": ":progs/dog.mdl" }) =
-	monster_dog : "Rottweiler. Runs fast and leaps at the player." []
+	monster_dog :
+	"<b>Rottweiler.</b><br><br>Runs fast and leaps at the player." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/enforcer.mdl" }) =
-	monster_enforcer : "Enforcer. Fires laser bolts." []
+	monster_enforcer :
+	"<b>Enforcer.</b><br><br>Fires laser bolts." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/knight.mdl" }) =
-	monster_knight : "Knight. Charges and attacks with a sword." []
+	monster_knight :
+	"<b>Knight.</b><br><br>Charges and attacks with a sword." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/hknight.mdl" }) =
-	monster_hell_knight : "Death knight. Fights with a sword and throws fans of magical bolts." []
+	monster_hell_knight :
+	"<b>Death knight.</b><br><br>Fights with a sword and throws fans of magical bolts." []
 
 @PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/ogre.mdl" }) =
-	monster_ogre : "Ogre. Fires grenades and attacks with a chainsaw up close." []
+	monster_ogre :
+	"<b>Ogre.</b><br><br>Fires grenades and attacks with a chainsaw up close." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 40) model({ "path": ":progs/wizard.mdl" }) =
-	monster_wizard : "Scrag. Floats through the air and spits acid." []
+	monster_wizard :
+	"<b>Scrag.</b><br><br>Floats through the air and spits acid." []
 
 @PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/demon.mdl" }) =
-	monster_demon1 : "Fiend. Leaps at the player and claws." []
+	monster_demon1 :
+	"<b>Fiend.</b><br><br>Leaps at the player and claws." []
 
 @PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/shalrath.mdl" }) =
-	monster_shalrath : "Vore. Launches homing spike balls that chase the player." []
+	monster_shalrath :
+	"<b>Vore.</b><br><br>Launches homing spike balls that chase the player." []
 
 @PointClass base(Monster) size(-32 -32 -24, 32 32 64) model({ "path": ":progs/shambler.mdl" }) =
-	monster_shambler : "Shambler. Takes only half damage from explosions and calls down " +
-	"lightning." []
+	monster_shambler :
+	"<b>Shambler.</b><br><br>Takes only half damage from explosions and calls down lightning." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 24) model({ "path": ":progs/tarbaby.mdl" }) =
-	monster_tarbaby : "Spawn. Bounces around erratically and explodes on contact." []
+	monster_tarbaby :
+	"<b>Spawn.</b><br><br>Bounces around erratically and explodes on contact." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 24) model({ "path": ":progs/fish.mdl" }) =
-	monster_fish : "Rotfish. Swims and bites. Only works in water." []
+	monster_fish :
+	"<b>Rotfish.</b><br><br>Swims and bites. Only works in water." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 40)
 	model({ "path": ":progs/zombie.mdl", "frame": {{ spawnflags & 1 -> 192, 0 }} }) =
-	monster_zombie : "Zombie. Throws gibs and can only be put down for good by gibbing it with " +
-	"an explosion."
+	monster_zombie :
+	"<b>Zombie.</b><br><br>Throws gibs and can only be put down for good by gibbing it with an " +
+	"explosion."
 [
 	spawnflags(flags) =
 	[
@@ -2278,15 +2328,18 @@ The model depends on server configuration: with custom models turned off the fla
 ]
 
 @PointClass base(Monster) size(-128 -128 -24, 128 128 256) model({ "path": ":progs/boss.mdl" }) =
-	monster_boss : "Chthon, the lava boss. Cannot be hurt by weapons and has to be killed with " +
-	"the lightning trap built from event_lightning." []
+	monster_boss :
+	"<b>Chthon, the lava boss.</b><br><br>Cannot be hurt by weapons and has to be killed with the " +
+	"lightning trap built from event_lightning." []
 
 @PointClass base(Monster) size(-16 -16 -24, 16 16 32) model({ "path": ":progs/oldone.mdl" }) =
-	monster_oldone : "Shub-Niggurath, the final boss. Killed by telefragging." []
+	monster_oldone :
+	"<b>Shub-Niggurath, the final boss.</b><br><br>Killed by telefragging." []
 
 @PointClass base(Appearflags, Target, Targetname) size(-16 -16 -24, 16 16 40) color(220 0 0) =
-	info_monster_start : "Position a monster is teleported in at when it is spawned during play " +
-	"rather than placed in the map. Removed in deathmatch." []
+	info_monster_start :
+	"<b>Position a monster is teleported in at when it is spawned during play rather than placed in the " +
+	"map.</b><br><br>Removed in deathmatch." []
 
 
 //=============================================================================
@@ -2308,21 +2361,24 @@ The model depends on server configuration: with custom models turned off the fla
 //=============================================================================
 
 @PointClass base(Appearflags, Targetname) size(-8 -8 -8, 8 8 8) color(0 128 0) =
-	info_rotate : "Axis that rotating brushes turn around. Place it at the centre of rotation " +
-	"and give it a name for the rotate_object to target. It removes itself once the rotating " +
-	"entities have found it." []
+	info_rotate :
+	"<b>Axis that rotating brushes turn around.</b><br><br>Place it at the centre of rotation and give " +
+	"it a name for the rotate_object to target. It removes itself once the rotating entities have found " +
+	"it." []
 
 @SolidClass base(Appearflags, Targetname, Target, Alpha, Bmodel) color(0 128 204) =
-	rotate_object : "Brushes that are rotated by a func_rotate_entity or func_rotate_door. It " +
-	"has no collision and does not move on its own."
+	rotate_object :
+	"<b>Brushes that are rotated by a func_rotate_entity or func_rotate_door.</b><br><br>It has no " +
+	"collision and does not move on its own."
 [
 	target(target_destination) : "Axis" : : "REQUIRED: name of the info_rotate this object turns " +
 		"around."
 ]
 
 @PointClass base(Appearflags, Targetname, Target) size(-8 -8 -8, 8 8 8) color(64 128 64) =
-	func_rotate_entity : "Turns a rotate_object continuously. Triggering it starts and stops the " +
-	"rotation, easing in and out over the acceleration time."
+	func_rotate_entity :
+	"<b>Turns a rotate_object continuously.</b><br><br>Triggering it starts and stops the rotation, " +
+	"easing in and out over the acceleration time."
 [
 	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the rotate_object to " +
 		"turn."
@@ -2340,11 +2396,11 @@ The model depends on server configuration: with custom models turned off the fla
 ]
 
 @PointClass base(Appearflags, Targetname, Target) size(-8 -8 -8, 8 8 8) color(64 128 64) =
-	func_rotate_door : "Turns a rotate_object between a closed and an open position each time it " +
-	"is triggered, for gates and hatches that swing rather than slide.
-
-Place this entity at the same position as the info_rotate. The angles set here are the open " +
-	"position; the brushes start at zero and turn to those angles."
+	func_rotate_door :
+	"<b>Turns a rotate_object between a closed and an open position each time it is triggered, for " +
+	"gates and hatches that swing rather than slide.<br><br>Place this entity at the same position as " +
+	"the info_rotate.</b><br><br>The angles set here are the open position; the brushes start at zero " +
+	"and turn to those angles."
 [
 	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the rotate_object to " +
 		"turn. The map fails to load without it."
@@ -2369,11 +2425,10 @@ Place this entity at the same position as the info_rotate. The angles set here a
 ]
 
 @SolidClass base(Appearflags, Targetname, Target, Alpha, Bmodel) color(64 128 64) =
-	func_rotate_train : "Brush model that travels between path_rotate entities and can turn as " +
-	"it goes. It is the centre of rotation for everything it targets.
-
-Give it a name to keep it waiting until it is triggered; without one it starts moving as " +
-	"soon as the map loads."
+	func_rotate_train :
+	"<b>Brush model that travels between path_rotate entities and can turn as it goes.</b><br><br>It is " +
+	"the centre of rotation for everything it targets.<br><br>Give it a name to keep it waiting until " +
+	"it is triggered; without one it starts moving as soon as the map loads."
 [
 	target(target_destination) : "Rotating Brushes" : : "REQUIRED: name of the object this train " +
 		"carries and rotates. The map fails to load without it."
@@ -2393,8 +2448,9 @@ Give it a name to keep it waiting until it is triggered; without one it starts m
 ]
 
 @PointClass base(Appearflags, Targetname, Target) size(-8 -8 -8, 8 8 8) color(128 64 0) =
-	path_rotate : "Stop on the route of a func_rotate_train, which also controls how the train " +
-	"turns and behaves on the way to this point."
+	path_rotate :
+	"Stop on the route of a func_rotate_train, which also controls how the train turns and behaves on " +
+	"the way to this point."
 [
 	target(target_destination) : "Next Stop" : : "Name of the next path_rotate on the route."
 	rotate(string) : "Rotation Speed" : "0 0 0" : "Degrees per second around each axis while " +
@@ -2431,13 +2487,12 @@ Give it a name to keep it waiting until it is triggered; without one it starts m
 	]
 ]
 
-@SolidClass base(Appearflags, Targetname, Bmodel) color(0 0 255) = func_movewall : "Invisible " +
-	"collision for a rotating object. Give it the same name as the rotate_object it belongs to " +
-	"and it will travel the same circular path without turning, so that players collide with " +
-	"something where the rotating brushes appear to be.
-
-Because it does not rotate, one movewall can only stand in for a small part of a rotating " +
-	"shape. Cover the volume with several of them."
+@SolidClass base(Appearflags, Targetname, Bmodel) color(0 0 255) = func_movewall :
+	"<b>Invisible collision for a rotating object.</b><br><br>Give it the same name as the " +
+	"rotate_object it belongs to and it will travel the same circular path without turning, so that " +
+	"players collide with something where the rotating brushes appear to be.<br><br>Because it does not " +
+	"rotate, one movewall can only stand in for a small part of a rotating shape. Cover the volume with " +
+	"several of them."
 [
 	target(target_destination) : "Axis" : : "Name of the info_rotate this wall orbits."
 	dmg(integer) : "Touch Damage" : 0 : "Damage dealt to players who touch it, at most twice a " +
