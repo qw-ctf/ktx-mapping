@@ -1629,15 +1629,28 @@ Doors that touch each other are linked into one, so that opening any part opens 
 // KTX brush entities
 //=============================================================================
 
-@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob : "KTX: brush model that " +
-	"drifts gently back and forth, for floating platforms and hanging objects.
-
-This entity came from two different mods that gave its flags opposite meanings, and KTX " +
-	"implements neither cleanly: setting bit 1 or bit 4 deletes the entity when the map loads, " +
-	"and bit 2 does nothing. Leave the spawnflags at zero."
+// TEMPORARY FORMATTING PROBE - func_bob's real description is in the git history and is
+// restored once the rendering questions below are answered. TrenchBroom shows entity
+// documentation in a QTextEdit and appends each description with Qt's automatic rich text
+// detection, so a description containing markup may render as HTML. This tests whether it
+// does, and what survives if it does.
+@SolidClass base(Appearflags, Targetname, Alpha, Bmodel) = func_bob : "PROBE. Read each
+numbered line and note whether the markup rendered or showed as literal text.
+1 BOLD <b>should be bold</b> end
+2 ITALIC <i>should be italic</i> end
+3 BREAK before<br>after
+4 PARAGRAPH <p>should stand alone</p> end
+5 LIST <ul><li>first item</li><li>second item</li></ul> end
+6 REAL NEWLINE: the next word should start a new line
+wrapped
+7 ENTITIES 5 &lt; 10 &amp; A &gt; B
+8 The line above should read: 5 < 10 & A > B"
 [
-	angle(integer) : "Movement Direction" : 0 : "Direction the entity drifts, in degrees. Use 360 " +
-		"for due east, -1 for straight up and -2 for straight down."
+	angle(integer) : "Movement Direction" : 0 : "PROBE for a property description.
+9 BOLD <b>should be bold</b> end
+10 BREAK before<br>after
+11 REAL NEWLINE: the next word should start a new line
+wrapped"
 	height(integer) : "Movement Distance" : 8 : "How far the entity travels from its resting " +
 		"position, in units."
 	count(integer) : "Cycle Time" : 2 : "Seconds between changes of direction. Must be at least 1."
