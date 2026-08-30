@@ -968,13 +968,28 @@ Any other key set here is passed through to the entity the brushes become, so ta
 ]
 
 @BaseClass color(255 255 40) = LightCore [
-	light(integer) : "Brightness" : 300 : "COMPILER (light): brightness of the light. Negative " +
-		"values subtract light from their surroundings, which is a way to darken an area " +
-		"selectively. May also be written as 'red green blue brightness' to set colour and " +
-		"brightness together, though '_color' is the clearer way to do that."
-	_color(color255) : "Colour" : "255 255 255" : "COMPILER (light): colour of the light."
-	style(choices) : "Animation" : 0 : "COMPILER (light): animated brightness pattern. Ignored on " +
-		"a named light, because light allocates a style of its own for switching it." =
+	light(integer) : "Brightness" : 300 : "COMPILER (light): how bright the light is at its " +
+		"source.<br><br>" +
+		"The default of 300 lights a small room. A wall fixture or torch usually sits between " +
+		"100 and 300; a light meant to fill a hall runs from 500 upwards. How far that " +
+		"brightness carries depends as much on the falloff formula below, so change the two " +
+		"together rather than reaching for ever larger numbers.<br><br>" +
+		"A negative value subtracts light instead, which is a way to push one corner of a room " +
+		"down without moving anything else. The key also accepts " +
+		"<code>red green blue brightness</code> in one go, though setting the colour separately " +
+		"is clearer."
+	_color(color255) : "Colour" : "255 255 255" : "COMPILER (light): colour of the light.<br><br>" +
+		"Lights read best when they are tinted rather than white, and when warm and cool lights " +
+		"are played against each other. Keep individual lights close to white and let the " +
+		"minimum light or a fill light supply the opposing tint; saturated lights lose the " +
+		"texture detail underneath them."
+	style(choices) : "Animation" : 0 : "COMPILER (light): an animated brightness pattern for the " +
+		"light to follow.<br><br>" +
+		"Flickers and pulses draw the eye, so they are best kept for places that should be " +
+		"noticed. A whole room of them is exhausting to look at and, on a deathmatch map, makes " +
+		"players harder to see.<br><br>" +
+		"A light given a name cannot also be animated: the compiler allocates a style of its own " +
+		"to switch that light on and off, and overwrites whatever is set here." =
 	[
 		0 : "Normal - steady"
 		1 : "Flicker A"
@@ -989,25 +1004,42 @@ Any other key set here is passed through to the entity the brushes become, so ta
 		10 : "Fluorescent flicker"
 		11 : "Slow pulse, never black"
 	]
-	delay(choices) : "Falloff Formula" : 0 : "COMPILER (light): how brightness falls off with " +
-		"distance. The names in quotes may also be used in place of the numbers." =
+	delay(choices) : "Falloff Formula" : 0 : "COMPILER (light): how the light dims with " +
+		"distance.<br><br>" +
+		"This changes the character of a light more than any other key. Linear reaches a fixed " +
+		"distance and stops, which is predictable and easy to control, and is why it is the " +
+		"default. The inverse square formulas are how light behaves in reality: very bright " +
+		"close to the source and fading fast, which suits a small fixture lighting its immediate " +
+		"surroundings but tends to blow out the wall it is mounted on.<br><br>" +
+		"The softened inverse square is usually the better of the two, since it avoids that " +
+		"hotspot. Infinite ignores distance entirely and is for filling a large volume evenly. " +
+		"Local minimum light acts as a flat fill that only reaches what the light can see, which " +
+		"is a way to lift one room without touching its neighbours.<br><br>" +
+		"The names may be written in place of the numbers." =
 	[
-		0 : "Linear - reaches a fixed distance and stops"
-		1 : "Inverse - 1/distance"
-		2 : "Inverse square - 1/distance squared"
+		0 : "Linear - reaches a set distance and stops"
+		1 : "Inverse - fades with distance"
+		2 : "Inverse square - realistic, bright at the source"
 		3 : "Infinite - equally bright at any distance"
 		4 : "Local minimum light - flat fill, only where the light can see"
-		5 : "Inverse square, softened - dimmer at the source and less harsh nearby"
+		5 : "Inverse square, softened - realistic without the hotspot"
 	]
 	wait(float) : "Fade Distance Scale" : "1.0" : "COMPILER (light): scales how far this light " +
-		"reaches. Values above 1.0 make it fade out sooner, values below 1.0 carry it further."
-	_falloff(float) : "Hard Fade Distance" : "0" : "COMPILER (light): distance in units at which " +
-		"the light reaches zero brightness, replacing the usual falloff calculation. 'Brightness' " +
-		"then sets only how bright the light is at its centre. Applies to linear falloff only; " +
-		"light warns and ignores it with any other formula."
-	_anglescale(float) : "Angle Falloff" : "-1" : "COMPILER (light): how much the angle between a " +
-		"surface and this light affects its brightness, from 0 for no effect to 1 for full " +
-		"realistic falloff. -1 uses the map-wide setting. Alias: '_anglesense'."
+		"reaches without changing how bright it is at the source.<br><br>" +
+		"The way to make one light spill further or stay contained, rather than raising its " +
+		"brightness and burning out whatever is nearest. Values below 1.0 carry the light " +
+		"further; above 1.0 pull it in."
+	_falloff(float) : "Hard Fade Distance" : "0" : "COMPILER (light): the exact distance in units " +
+		"at which this light reaches nothing at all.<br><br>" +
+		"Replaces the usual falloff calculation with a hard limit, so the brightness key then " +
+		"only sets how bright the centre is. Useful when a light must not spill past a doorway " +
+		"or into a neighbouring room.<br><br>" +
+		"Works with linear falloff only; with any other formula the compiler warns and ignores it."
+	_anglescale(float) : "Angle Falloff" : "-1" : "COMPILER (light): how much a surface turned " +
+		"away from this light is dimmed, overriding the map-wide setting.<br><br>" +
+		"0 lights every surface the same regardless of facing, which flattens geometry but keeps " +
+		"a corner readable; 1 is realistic and contrasty. -1 leaves it to the map-wide value, " +
+		"which is almost always what is wanted. Alias: <code>_anglesense</code>."
 	_dirt(choices) : "Ambient Occlusion" : 0 : "COMPILER (light): whether ambient occlusion " +
 		"darkens the light this entity casts." =
 	[
@@ -1024,30 +1056,53 @@ Any other key set here is passed through to the entity the brushes become, so ta
 		"in between this distance and the fade-in end. Both keys must be set for either to apply."
 	_dirt_on_radius(float) : "Occlusion Fade-in End" : "0" : "COMPILER (light): distance in units " +
 		"beyond which this light's ambient occlusion is at full strength."
-	_deviance(float) : "Soft Shadow Radius" : "0" : "COMPILER (light): scatters this light into a " +
-		"sphere of smaller lights of the given radius in units, which softens the shadow edges it " +
-		"casts. The total brightness is divided between them."
-	_samples(integer) : "Soft Shadow Samples" : 16 : "COMPILER (light): how many lights the sphere " +
-		"is made of. Higher values give smoother shadows and slower compiles. Only used when a " +
-		"soft shadow radius is set."
-	_bouncescale(float) : "Bounce Light Scale" : "1.0" : "COMPILER (light): scales how much this " +
-		"light contributes to bounced lighting. 0 stops it bouncing entirely."
+	_deviance(float) : "Soft Shadow Radius" : "0" : "COMPILER (light): softens the shadows this " +
+		"light casts, by scattering it into a sphere of smaller lights of this radius in " +
+		"units.<br><br>" +
+		"A single Quake light is a point, and a point casts a razor-sharp shadow that reads as " +
+		"artificial next to any real light source. Giving it a radius makes the shadow edge " +
+		"spread the way a lamp or a window does. Match the radius to the size of the fixture the " +
+		"light represents: 8 to 16 for a wall lamp, more for a broad skylight.<br><br>" +
+		"The total brightness is divided between the scattered lights, so brightness is preserved."
+	_samples(integer) : "Soft Shadow Samples" : 16 : "COMPILER (light): how many lights the " +
+		"scattered sphere is built from.<br><br>" +
+		"Too few and the soft shadow breaks into visible overlapping copies of itself; the " +
+		"default of 16 is usually enough. Raise it if a large radius looks banded, and expect a " +
+		"slower compile. Only used when a soft shadow radius is set."
+	_bouncescale(float) : "Bounce Light Scale" : "1.0" : "COMPILER (light): how much this light " +
+		"contributes to bounced lighting, independently of how brightly it lights surfaces " +
+		"directly.<br><br>" +
+		"Set it to 0 for a light that should illuminate its surroundings without throwing " +
+		"indirect light around, or raise it for one that should fill a room more than its " +
+		"direct brightness suggests."
 ]
 
 @BaseClass = LightSpot [
-	target(target_destination) : "Aim At" : : "COMPILER (light): name of an entity to aim at, " +
-		"usually an info_null. Aiming a light turns it into a spotlight."
-	mangle(string) : "Aim Direction" : : "COMPILER (light): direction to aim, as 'yaw pitch roll', " +
-		"where '0 -90 0' points straight down. Aiming a light turns it into a spotlight. Ignored " +
-		"when the light targets an entity."
-	angle(float) : "Cone Width" : "40" : "COMPILER (light): full width of the spotlight cone in " +
-		"degrees."
-	_softangle(float) : "Cone Inner Width" : "0" : "COMPILER (light): width in degrees of an inner " +
-		"cone at full brightness, with the light fading between it and the outer cone. Must be " +
-		"smaller than the cone width. 0 gives a hard-edged cone."
-	_cone(float) : "Cone Radius (Quake II style)" : "10" : "COMPILER (light): half the width of " +
-		"the spotlight cone in degrees, the way the Quake II tools express it. Setting this takes " +
-		"precedence over the cone width."
+	target(target_destination) : "Aim At" : : "COMPILER (light): name of an entity for this light " +
+		"to point at, which turns it into a spotlight.<br><br>" +
+		"Aiming at an info_null is the usual way to build one, because the target is visible in " +
+		"the editor and can be dragged until the cone falls where it should. The info_null " +
+		"removes itself when the map loads, so it costs nothing at runtime."
+	mangle(string) : "Aim Direction" : : "COMPILER (light): direction to point, written as yaw, " +
+		"then pitch, then roll. Setting it turns the light into a spotlight.<br><br>" +
+		"<code>0 -90 0</code> points straight down. Aiming by angle rather than at a target is " +
+		"quicker for a light that shines straight down, but harder to judge for anything else. " +
+		"Ignored when the light aims at a target."
+	angle(float) : "Cone Width" : "40" : "COMPILER (light): the full width of the spotlight cone, " +
+		"in degrees.<br><br>" +
+		"Narrow cones below about 30 read as a focused beam and put a hard pool of light on the " +
+		"floor; wide ones above 60 behave more like a shaded lamp. Remember this is the whole " +
+		"width, not the angle from the centre."
+	_softangle(float) : "Cone Inner Width" : "0" : "COMPILER (light): the width in degrees of an " +
+		"inner cone that stays at full brightness, with the light fading from there out to the " +
+		"edge of the outer cone.<br><br>" +
+		"This is what separates a spotlight that looks like a light from one that looks like a " +
+		"stencil. Left at 0 the cone has a hard edge; setting it to roughly two thirds of the " +
+		"cone width gives a soft falloff. Must be smaller than the cone width."
+	_cone(float) : "Cone Radius" : "10" : "COMPILER (light): the spotlight cone measured from its " +
+		"centre outwards rather than edge to edge, as the Quake II tools express it.<br><br>" +
+		"The same control as cone width, counted differently: a radius of 20 is a width of 40. " +
+		"Setting it overrides the cone width, so use one or the other and not both."
 ]
 
 @BaseClass = LightSun [
