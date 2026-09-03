@@ -926,8 +926,9 @@
 		1 : "On"
 	]
 	switchshadstyle(integer) : "Switchable Shadow Style" : 0 : "COMPILER (light): light style " +
-		"number allocated for this entity's switchable shadow. light writes this key itself; set " +
-		"it by hand only to pin a specific style."
+		"number allocated for this entity's switchable shadow. light writes this key itself and " +
+		"overwrites whatever is already there, so a style cannot be pinned by hand. Read it back " +
+		"out of the compiled map to find which style the entity was given."
 	_autominlight(choices) : "Automatic Minimum Light" : 0 : "COMPILER (light): samples the light " +
 		"actually reaching the entity and uses it as the minimum light, so an unlit underside " +
 		"picks up its surroundings rather than a flat value.<br><br>" +
@@ -1009,8 +1010,13 @@
 		0 : "Off"
 		1 : "On"
 	]
-	_lightgrid_hint(choices) : "Light Grid Bounds Hint" : 0 : "COMPILER: includes this entity in " +
-		"the volume the light grid is built to cover, and exempts it from leak filling." =
+	_lightgrid_hint(choices) : "Light Grid Bounds Hint" : 0 : "COMPILER: marks a corner of the " +
+		"volume the light grid is built to cover, and exempts this entity from leak " +
+		"filling.<br><br>" +
+		"The hints replace the grid bounds rather than widening them: as soon as any entity in " +
+		"the map carries this key, the grid covers exactly the box spanned by those entities " +
+		"instead of the whole map. Place at least two, at opposite corners of the volume that " +
+		"needs gridding - one on its own spans nothing, and the grid falls back to the map." =
 	[
 		0 : "Off"
 		1 : "On"
@@ -1136,7 +1142,9 @@
 		"artificial next to any real light source. Giving it a radius makes the shadow edge " +
 		"spread the way a lamp or a window does. Match the radius to the size of the fixture the " +
 		"light represents: 8 to 16 for a wall lamp, more for a broad skylight.<br><br>" +
-		"The total brightness is divided between the scattered lights, so brightness is preserved."
+		"The total brightness is divided between the scattered lights on most falloff formulas, " +
+		"so brightness is preserved - but not on linear falloff, which is the default. A linear " +
+		"light given a radius reads brighter than it did, so lower its brightness to match."
 	_samples(integer) : "Soft Shadow Samples" : 16 : "COMPILER (light): how many lights the " +
 		"scattered sphere is built from.<br><br>" +
 		"Too few and the soft shadow breaks into visible overlapping copies of itself; the " +
@@ -1254,17 +1262,24 @@
 		"light projects, in the manner of a slide projector or a gobo. The texture must be used " +
 		"somewhere in the map so that it is available to the compiler."
 	_project_mangle(string) : "Projection Direction" : "20 0 0" : "COMPILER (light): direction the " +
-		"texture is projected, as 'yaw pitch roll'. Defaults to the light's own aim direction."
+		"texture is projected, as 'yaw pitch roll'.<br><br>" +
+		"With the key absent the direction comes from <code>mangle</code> if the light has one, " +
+		"and otherwise from the <code>angles</code> key, which is '0 0 0' when that is unset too; " +
+		"the default shown here is never what a map actually gets. Aiming the light with " +
+		"<code>target</code> does not turn the projection either, since the image is oriented " +
+		"before targets are resolved. Set this key or <code>mangle</code>."
 	_project_fov(float) : "Projection Field Of View" : "90" : "COMPILER (light): angular width of " +
 		"the projected image in degrees. Wider values spread the image over a larger area."
 ]
 
 @BaseClass = LightAdvanced [
-	_nostaticlight(choices) : "Exclude From Lightmap" : 0 : "COMPILER (light): stops this light " +
-		"contributing to the lightmap, leaving it to affect only the light grid." =
+	_nostaticlight(choices) : "Exclude From Compiled Lighting" : 0 : "COMPILER (light): stops " +
+		"this light contributing to any compiled lighting at all - the lightmap and the light " +
+		"grid alike. The entity is still written to the BSP, so an engine doing its own realtime " +
+		"lighting can pick it up." =
 	[
 		0 : "Light the map normally"
-		1 : "Do not light the map"
+		1 : "Contribute no compiled lighting"
 	]
 	_bleed(choices) : "Light Through Surfaces" : 0 : "COMPILER (light): lets this light reach the " +
 		"back faces of surfaces facing away from it, ignoring the fact that they are turned away." =
@@ -1280,8 +1295,10 @@
 		1 : "Light from exactly this position"
 	]
 	_light_channel_mask(integer) : "Light Channel Mask" : 1 : "COMPILER (light): bitmask of the " +
-		"lighting channels this light shines on. It only lights brush entities that share one of " +
-		"its channels."
+		"lighting channels this light shines on. It lights only surfaces whose object channel " +
+		"mask shares a bit with it, and that includes the world: world surfaces sit on channel 1, " +
+		"so a light moved to channel 2 alone stops lighting the map rather than just the brush " +
+		"entities."
 	_shadow_channel_mask(integer) : "Shadow Channel Mask" : 1 : "COMPILER (light): bitmask of the " +
 		"lighting channels whose geometry casts shadows from this light. Defaults to the light " +
 		"channel mask, and setting it separately allows a light to pass through geometry that " +
