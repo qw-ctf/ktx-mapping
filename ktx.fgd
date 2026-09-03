@@ -1174,12 +1174,6 @@
 		"Too few and the soft shadow breaks into visible overlapping copies of itself; the " +
 		"default of 16 is usually enough. Raise it if a large radius looks banded, and expect a " +
 		"slower compile. Only used when a soft shadow radius is set."
-	_bouncescale(float) : "Bounce Light Scale" : "1.0" : "COMPILER (light): how much this light " +
-		"contributes to bounced lighting, independently of how brightly it lights surfaces " +
-		"directly.<br><br>" +
-		"Set it to 0 for a light that should illuminate its surroundings without throwing " +
-		"indirect light around, or raise it for one that should fill a room more than its " +
-		"direct brightness suggests."
 ]
 
 @BaseClass = LightSpot [
@@ -1276,6 +1270,13 @@
 		0 : "Ordinary surface light"
 		1 : "Sky light"
 	]
+	_surflight_minlight_scale(float) : "Surface Light Self-Illumination" : "1.0" : "COMPILER " +
+		"(light): scales the minimum light applied to the emissive surfaces themselves, so a " +
+		"light fixture wearing this texture does not render black. Radiosity method only. 0 " +
+		"disables it.<br><br>" +
+		"Set here it applies once, to the surfaces this template lights, and multiplies with the " +
+		"value on the brush entity the surface belongs to. Prefer it to the worldspawn key, " +
+		"which lands twice over."
 	_surflight_group(integer) : "Surface Light Group" : 0 : "COMPILER (light): restricts this " +
 		"template to brush entities carrying the same group number, so the same texture can emit " +
 		"differently in different places. Applies to both methods."
