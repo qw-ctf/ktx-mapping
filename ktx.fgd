@@ -512,12 +512,12 @@
 		"applies its own copy on top, so the surfaces end up scaled by the square of the number " +
 		"written. 0.5 here is an effective 0.25. The same key on a brush entity or on a surface " +
 		"light template is applied once, so prefer those when a particular value is wanted."
-	_surflight_atten(float) : "Surface Light Attenuation" : "1.0" : "COMPILER (qbsp): scales how " +
+	_surflight_atten(float) : "Surface Light Attenuation" : "1.0" : "COMPILER (light): scales how " +
 		"quickly surface light falls off with distance. Higher values fade it sooner. Radiosity " +
 		"method only.<br><br>" +
-		"Despite belonging to the surface lighting, this one reaches light by way of qbsp, which " +
-		"copies it onto every face: light reads it from there and not from worldspawn. Changing " +
-		"it and running light alone does nothing - the map has to go back through qbsp."
+		"Unlike the other keys here, this one is resolved per face while the map is built rather " +
+		"than read from worldspawn while it is lit, so a relight on its own will not pick up a " +
+		"change to it."
 	_sky_surface(color255) : "Sky Surface Emission" : "0 0 0" : "COMPILER (light): makes sky " +
 		"surfaces themselves emit light of this colour. Radiosity method only, and only for a " +
 		"surface light template marked as sky emission that does not set its own colour. " +
