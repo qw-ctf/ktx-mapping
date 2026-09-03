@@ -351,24 +351,29 @@
 		"the second sun. A cool fill against a warm key sun is the conventional pairing."
 	_sun2_mangle(string) : "Second Sun Direction" : "0 -90 0" : "COMPILER (light): direction the " +
 		"second sun shines, as yaw, pitch and roll."
-	_sunlight2(float) : "Sky Dome Brightness" : "0" : "COMPILER (light): soft daylight coming " +
-		"from the whole sky at once rather than from a single direction.<br><br>" +
-		"Where the sun is one hard light, this is a dome of many arranged above the horizon, so " +
-		"shadows are soft and open areas are lit evenly. It is what makes an outdoor area read " +
-		"as genuinely open, and it pairs well with a dimmer sun than would otherwise be needed. " +
-		"Try 40 to 80. It costs noticeably more compile time than a plain sun."
-	_sunlight2_color(color255) : "Sky Dome Colour" : "255 255 255" : "COMPILER (light): colour of " +
-		"the sky dome. A pale blue is the usual choice, since this stands in for light from the " +
-		"sky itself. Alias: <code>_sunlight_color2</code>."
-	_sunlight3(float) : "Ground Dome Brightness" : "0" : "COMPILER (light): the same idea as the " +
-		"sky dome, but arranged below the horizon so the light comes upward.<br><br>" +
-		"It stands in for light bouncing up off the ground, filling in undersides and ceilings " +
-		"that nothing else reaches. Keep it well below the sky dome, and tint it towards the " +
-		"colour of the ground it is meant to be bouncing from."
-	_sunlight3_color(color255) : "Ground Dome Colour" : "255 255 255" : "COMPILER (light): colour " +
-		"of the ground dome. Alias: <code>_sunlight_color3</code>."
+	_sunlight2(float) : "Upper Sky Dome Brightness" : "0" : "COMPILER (light): soft daylight " +
+		"arriving from the whole sky at once rather than from a single direction.<br><br>" +
+		"Where the sun is one hard light, this is a dome of many spread across the upper " +
+		"hemisphere. Each of them shines out of the sky surfaces and is blocked by geometry just " +
+		"as the sun is, so shadows are soft and open areas are lit evenly. It is what makes an " +
+		"outdoor area read as genuinely open, and it pairs well with a dimmer sun than would " +
+		"otherwise be needed. Try 40 to 80. It costs noticeably more compile time than a plain " +
+		"sun."
+	_sunlight2_color(color255) : "Upper Sky Dome Colour" : "255 255 255" : "COMPILER (light): " +
+		"colour of the upper dome. A pale blue is the usual choice, since this stands in for " +
+		"light from the sky itself. Alias: <code>_sunlight_color2</code>."
+	_sunlight3(float) : "Lower Sky Dome Brightness" : "0" : "COMPILER (light): the same dome " +
+		"mirrored into the lower hemisphere, so that its light travels upward.<br><br>" +
+		"It still shines out of the sky surfaces and is still stopped by geometry, so it only " +
+		"reaches a surface that can see sky below it: a level floating in the clouds, or one " +
+		"ringed by a pit of sky. It is not a general fill for undersides, and a surface with " +
+		"solid ground under it receives nothing at all - that job belongs to bounce. Where there " +
+		"is sky below, set it alongside the upper dome to light the map evenly from every " +
+		"direction, and tint it towards whatever the light is meant to be coming up off."
+	_sunlight3_color(color255) : "Lower Sky Dome Colour" : "255 255 255" : "COMPILER (light): " +
+		"colour of the lower dome. Alias: <code>_sunlight_color3</code>."
 	_sunlight2_dirt(choices) : "Sky Dome Ambient Occlusion" : 0 : "COMPILER (light): whether " +
-		"ambient occlusion darkens the sky and ground domes." =
+		"ambient occlusion darkens the two sky domes." =
 	[
 		-1 : "Never occlude the domes"
 		0 : "Follow the ambient occlusion setting"
@@ -1153,19 +1158,20 @@
 		0 : "Ordinary light"
 		1 : "Sun"
 	]
-	_sunlight2(choices) : "Act As Sky Dome" : 0 : "COMPILER (light): turns this light into a dome " +
-		"of lights above the horizon emitting from sky surfaces, giving soft light from the whole " +
-		"sky rather than one direction." =
+	_sunlight2(choices) : "Act As Upper Sky Dome" : 0 : "COMPILER (light): turns this light into " +
+		"a dome of lights across the upper hemisphere, all of them shining out of the sky " +
+		"surfaces, giving soft light from the whole sky rather than from one direction." =
 	[
 		0 : "Ordinary light"
-		1 : "Sky dome"
+		1 : "Upper sky dome"
 	]
-	_sunlight3(choices) : "Act As Ground Dome" : 0 : "COMPILER (light): turns this light into a " +
-		"dome of lights below the horizon emitting from sky surfaces, acting as light bounced up " +
-		"off the ground." =
+	_sunlight3(choices) : "Act As Lower Sky Dome" : 0 : "COMPILER (light): turns this light into " +
+		"the same dome mirrored into the lower hemisphere, so that its light shines upward out " +
+		"of the sky surfaces. Like any sun it is stopped by geometry, so it only reaches " +
+		"surfaces that can see sky below them." =
 	[
 		0 : "Ordinary light"
-		1 : "Ground dome"
+		1 : "Lower sky dome"
 	]
 	_suntexture(string) : "Sun Sky Texture" : : "COMPILER (light): name of the sky texture this " +
 		"sun shines out of, when the map has more than one sky texture and each should light the " +
