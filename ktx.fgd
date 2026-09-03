@@ -505,7 +505,7 @@
 		"Alias: <code>_sun_surface</code>."
 ]
 
-@BaseClass = WorldLightGrid [
+@BaseClass = WorldLightmap [
 	_world_units_per_luxel(float) : "Lightmap Density" : "0" : "COMPILER (light): how many units " +
 		"of the world one pixel of the lightmap covers.<br><br>" +
 		"Quake bakes lighting at one lightmap pixel per 16 units, which is coarse enough that " +
@@ -522,6 +522,16 @@
 	_lmshift(integer) : "Lightmap Shift" : 4 : "COMPILER (light): applies a lightmap shift to the " +
 		"whole map and writes an LMSHIFT lump, allowing a map to be relit at higher lightmap " +
 		"resolution without recompiling from the source."
+	_novanilla(choices) : "Omit Vanilla Lightmap" : 0 : "COMPILER (light): writes only the " +
+		"coloured BSPX lighting and omits the plain lightmap vanilla engines read. Such a map " +
+		"appears fullbright in engines without BSPX support." =
+	[
+		0 : "Write the vanilla lightmap"
+		1 : "Omit the vanilla lightmap"
+	]
+]
+
+@BaseClass = WorldLightStyles [
 	_facestyles(integer) : "Light Styles Per Face" : 4 : "COMPILER (light): maximum number of " +
 		"animated or switchable light styles that may affect a single face. Values above 4 " +
 		"require a BSPX lump and an engine that reads it."
@@ -531,9 +541,16 @@
 	_compilerstyle_max(integer) : "Last Compiler Light Style" : 64 : "COMPILER (light): one past " +
 		"the last style number available to switchable lights. Compilation fails once the " +
 		"compiler runs out of style numbers."
+]
+
+// The light grid is lighting sampled through the open space of the map rather than painted onto
+// its surfaces, so that models and particles moving through a room pick it up. It goes into a
+// BSPX lump that only some engines read, and light still treats the feature as experimental.
+@BaseClass = WorldLightGrid [
 	_lightgrid(choices) : "Light Grid" : 0 : "COMPILER (light): computes a grid of lighting " +
 		"samples through the map volume and stores it in a BSPX lump, so that models and " +
-		"particles can be lit by it. Requires engine support." =
+		"particles can be lit by it. Requires engine support, and is still marked experimental " +
+		"in light." =
 	[
 		0 : "Off"
 		1 : "On"
@@ -542,17 +559,14 @@
 		"between light grid sample points in units, as 'x y z'. Closer spacing gives better " +
 		"model lighting and a larger lump."
 	_lightgrid_format(choices) : "Light Grid Format" : "octree" : "COMPILER (light): which BSPX " +
-		"lump the light grid is written to." =
+		"lump the grid is written to.<br><br>" +
+		"LIGHTGRID_OCTREE stores one colour per sample point and is the format to use. " +
+		"LIGHTGRIDS stores six colours per sample, one for each face of a cube, so a model can " +
+		"be lit differently on each side; the compiler marks that lump as work in progress and " +
+		"not final, so leave it alone unless a particular engine asks for it." =
 	[
 		"octree" : "LIGHTGRID_OCTREE"
-		"lightgrids" : "LIGHTGRIDS"
-	]
-	_novanilla(choices) : "Omit Vanilla Lightmap" : 0 : "COMPILER (light): writes only the " +
-		"coloured BSPX lighting and omits the plain lightmap vanilla engines read. Such a map " +
-		"appears fullbright in engines without BSPX support." =
-	[
-		0 : "Write the vanilla lightmap"
-		1 : "Omit the vanilla lightmap"
+		"lightgrids" : "LIGHTGRIDS (work in progress)"
 	]
 ]
 
@@ -613,7 +627,8 @@
 ]
 
 @SolidClass base(WorldEngine, WorldKtx, WorldLightCore, WorldLightSun, WorldLightDirt,
-	WorldLightBounce, WorldLightSurface, WorldLightGrid, WorldLightProcess) =
+	WorldLightBounce, WorldLightSurface, WorldLightmap, WorldLightStyles, WorldLightGrid,
+	WorldLightProcess) =
 	worldspawn :
 	"<b>The map itself.</b><br><br>Every brush that does not belong to a brush entity is part of " +
 	"worldspawn, and the keys here configure the map as a whole: the compilers read their settings from " +
