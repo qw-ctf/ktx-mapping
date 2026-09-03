@@ -229,13 +229,15 @@
 		"map at once. Alias: <code>_mincolor</code>."
 	_minlight_dirt(choices) : "Minimum Light Ambient Occlusion" : 0 : "COMPILER (light): whether " +
 		"ambient occlusion is allowed to darken the minimum light.<br><br>" +
-		"Turning occlusion on map-wide switches this on as well, which keeps corners from being " +
-		"flattened back out by the light floor. Set it to -1 if occlusion is eating the floor " +
-		"and shadows have gone black again." =
+		"Leave the key out and it follows the map-wide occlusion setting, which keeps corners " +
+		"from being flattened back out by the light floor. Writing a value overrides that, and " +
+		"writing 0 forces occlusion off the minimum light even with occlusion on map-wide - the " +
+		"fix when occlusion is eating the floor and shadows have gone black again.<br><br>" +
+		"Unlike the two sun occlusion keys this one is a plain on or off rather than a three-way " +
+		"choice, and -1 does the same as 0." =
 	[
-		-1 : "Never occlude minimum light"
-		0 : "Follow the ambient occlusion setting"
-		1 : "Occlude minimum light"
+		0 : "Off, even with ambient occlusion on"
+		1 : "On"
 	]
 	_minlight_mottle(choices) : "Minimum Light Mottling" : 0 : "COMPILER (light): breaks up the " +
 		"minimum light with a faint noise pattern.<br><br>" +
@@ -515,13 +517,19 @@
 		"The cost is size and compile time, both of which rise steeply as the number falls, so " +
 		"this is worth applying to a map that needs it rather than as a habit. It also writes " +
 		"the lighting to a BSPX lump, so an engine that does not understand the lump falls back " +
-		"to the ordinary lightmap. 0 leaves the lighting at Quake's own resolution."
+		"to the ordinary lightmap.<br><br>" +
+		"Remove the key to leave the lighting at Quake's own resolution. Do not write 0: light " +
+		"acts on the key being present at all, and a luxel size of zero sends the face extent " +
+		"maths through a division by it."
 	_lightmap_scale(integer) : "Forced Lightmap Scale" : 0 : "COMPILER (light): forces every " +
 		"surface to this lightmap scale. Quake's own scale is 16, and vanilla engines accept " +
 		"nothing else. 0 leaves the scale alone."
 	_lmshift(integer) : "Lightmap Shift" : 4 : "COMPILER (light): applies a lightmap shift to the " +
 		"whole map and writes an LMSHIFT lump, allowing a map to be relit at higher lightmap " +
-		"resolution without recompiling from the source."
+		"resolution without recompiling from the source.<br><br>" +
+		"The lump is written whenever the key is present, the default of 4 included, so remove " +
+		"the key rather than setting it back. The forced lightmap scale above wins over it: with " +
+		"that key set, no LMSHIFT lump is written and any existing one is dropped."
 	_novanilla(choices) : "Omit Vanilla Lightmap" : 0 : "COMPILER (light): writes only the " +
 		"coloured BSPX lighting and omits the plain lightmap vanilla engines read. Such a map " +
 		"appears fullbright in engines without BSPX support." =
@@ -534,7 +542,10 @@
 @BaseClass = WorldLightStyles [
 	_facestyles(integer) : "Light Styles Per Face" : 4 : "COMPILER (light): maximum number of " +
 		"animated or switchable light styles that may affect a single face. Values above 4 " +
-		"require a BSPX lump and an engine that reads it."
+		"require a BSPX lump and an engine that reads it.<br><br>" +
+		"Writing this key at all, even at the default of 4, also raises the last compiler light " +
+		"style below to 65535 unless that key is written too. Leave it out unless the map really " +
+		"needs more than four styles on one face."
 	_compilerstyle_start(integer) : "First Compiler Light Style" : 32 : "COMPILER (light): first " +
 		"style number the compiler hands out to switchable lights. Raise it if the mod already " +
 		"uses styles in this range."
@@ -919,10 +930,13 @@
 		"it by hand only to pin a specific style."
 	_autominlight(choices) : "Automatic Minimum Light" : 0 : "COMPILER (light): samples the light " +
 		"actually reaching the entity and uses it as the minimum light, so an unlit underside " +
-		"picks up its surroundings rather than a flat value." =
+		"picks up its surroundings rather than a flat value.<br><br>" +
+		"Leaving the key off the entity is what gives the behaviour worth having: the sampled " +
+		"light is applied only where something is shadowing the model, and nowhere else. Writing " +
+		"a value overrides that in one direction or the other, and light reads -1 as off exactly " +
+		"as it reads 0." =
 	[
-		-1 : "Off"
-		0 : "Apply to occluded surfaces only"
+		0 : "Off"
 		1 : "Apply to all surfaces"
 	]
 	_autominlight_target(string) : "Automatic Minimum Light Source" : : "COMPILER (light): " +
