@@ -251,7 +251,10 @@
 	_maxlight(float) : "Maximum Light" : "0" : "COMPILER (light): a ceiling on the lighting, " +
 		"clamping every surface to at most this level.<br><br>" +
 		"Useful for stopping surfaces close to a bright light from burning out to featureless " +
-		"white. 0 leaves the lighting unclamped."
+		"white. 0 leaves the lighting unclamped.<br><br>" +
+		"The clamp happens before the range and gamma adjustments, and at twice the value " +
+		"written, so at the default range of 0.5 the finished ceiling is exactly the number here. " +
+		"Raise the range and the effective ceiling rises with it."
 	_addmin(choices) : "Minimum Light Mode" : 0 : "COMPILER (light): whether the minimum light " +
 		"is a floor or is added on top of everything.<br><br>" +
 		"Adding it brightens the whole map rather than only its shadows, which washes lighting " +
@@ -285,10 +288,12 @@
 		"readable. The default of 0.5 splits the difference and suits most maps.<br><br>" +
 		"Alias: <code>_anglesense</code>."
 	_spotlightautofalloff(choices) : "Spotlight Automatic Falloff" : 0 : "COMPILER (light): makes " +
-		"every spotlight fade out at the thing it is aimed at, instead of by its own falloff " +
+		"a spotlight fade out at the thing it is aimed at, instead of by its own falloff " +
 		"settings.<br><br>" +
-		"Convenient when spotlights are aimed at floors and should not spill past them, but it " +
-		"applies to every spotlight in the map at once." =
+		"Only spotlights aimed with <code>target</code> at another entity are affected; one aimed " +
+		"with <code>mangle</code> is not, and a light that sets its own falloff distance keeps " +
+		"it. Convenient when spotlights are aimed at floors and should not spill past them, but " +
+		"it applies to every targeted spotlight in the map at once." =
 	[
 		0 : "Use the normal falloff rules"
 		1 : "Fade out at the spotlight target"
@@ -384,7 +389,8 @@
 	_sunsamples(integer) : "Sky Dome Sample Count" : 64 : "COMPILER (light): how many separate " +
 		"lights each dome is built from.<br><br>" +
 		"More samples give smoother sky shadows and a slower compile. The default of 64 is fine " +
-		"while building; raise it for a final compile if dome shadows look banded."
+		"while building; raise it for a final compile if dome shadows look banded. It also sets " +
+		"how many sampled directions the sun edge softness above is built from."
 ]
 
 @BaseClass = WorldLightDirt [
@@ -452,15 +458,18 @@
 		"made of something. It is also easy to overdo, so try 0.3 to 0.5 before going higher."
 	_bouncestyled(choices) : "Bounce Styled Lights" : 0 : "COMPILER (light): whether switchable " +
 		"and animated lights contribute bounced light.<br><br>" +
-		"They bounce at full brightness whatever they are doing at the time, so a light that is " +
-		"switched off still throws indirect light around the room. Leave this off unless the " +
-		"styled lights in question are always on." =
+		"The bounce keeps the style of the light that made it, so indirect light from a " +
+		"switchable light goes out with it and indirect light from a flickering light flickers " +
+		"along with it. What it costs is compile time and one of the styles a face is allowed to " +
+		"carry, which is why it is off by default." =
 	[
 		0 : "Styled lights do not bounce"
 		1 : "Styled lights bounce"
 	]
 	_bouncelightsubdivision(float) : "Bounce Emitter Size" : "64.0" : "COMPILER (light): the size " +
 		"in units of the patches a lit surface is divided into when it re-emits light.<br><br>" +
+		"Only read when the emissive surface quality is set to high. At the default quality a lit " +
+		"face re-emits from a single point at its centre and this key changes nothing.<br><br>" +
 		"Smaller patches follow the shape of the lighting more closely and compile more slowly. " +
 		"The default is a reasonable compromise; halve it only if bounced light looks blocky " +
 		"across a large surface."
@@ -532,7 +541,10 @@
 		"that key set, no LMSHIFT lump is written and any existing one is dropped."
 	_novanilla(choices) : "Omit Vanilla Lightmap" : 0 : "COMPILER (light): writes only the " +
 		"coloured BSPX lighting and omits the plain lightmap vanilla engines read. Such a map " +
-		"appears fullbright in engines without BSPX support." =
+		"appears fullbright in engines without BSPX support.<br><br>" +
+		"It only bites once BSPX lighting is actually being written, which for a Quake map " +
+		"happens by itself only when the map uses coloured light at all. On a map lit entirely " +
+		"in greyscale the key does nothing." =
 	[
 		0 : "Write the vanilla lightmap"
 		1 : "Omit the vanilla lightmap"
@@ -610,9 +622,13 @@
 		"HIGH" : "Points spread out for antialiasing"
 	]
 	_visapprox(choices) : "Visibility Culling" : "auto" : "COMPILER (light): how light decides " +
-		"that a light cannot possibly reach a face." =
+		"that a light cannot possibly reach a face.<br><br>" +
+		"Leave the key out for the automatic choice. light resolves that before it reads " +
+		"worldspawn, so a written 'auto' arrives after the decision and matches nothing " +
+		"afterwards - the compile then runs with no culling at all, which is correct but slow. " +
+		"Write vis or rays to choose deliberately." =
 	[
-		"auto" : "Choose from the BSP format"
+		"auto" : "No culling - the automatic choice is made before this key is read"
 		"none" : "No culling - slowest and exact"
 		"vis" : "Use BSP visibility data - slow and precise"
 		"rays" : "Sphere culling with test rays - fast, may miss faces"
