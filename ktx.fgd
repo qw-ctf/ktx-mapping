@@ -575,7 +575,7 @@
 		"on a 2x2 grid and averages the result, softening the stair-stepping along shadow edges. " +
 		"The value written here is ignored: the key counts as on whenever it is present, even " +
 		"set to 0, so remove it entirely to turn supersampling off. Use <code>_extra4</code> for a 4x4 " +
-		"grid instead; setting both leaves whichever qbsp reads last in effect." =
+		"grid instead; setting both leaves whichever light reads last in effect." =
 	[
 		1 : "On"
 	]
