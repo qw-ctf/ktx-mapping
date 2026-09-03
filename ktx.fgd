@@ -1196,7 +1196,12 @@
 @BaseClass = LightSurface [
 	_surface(string) : "Emissive Texture" : : "COMPILER (light): name of a texture that should " +
 		"give off light. This entity stops being a light in its own right and becomes a template: " +
-		"every surface in the map using that texture emits light with these settings."
+		"every surface in the map using that texture emits light with these settings.<br><br>" +
+		"Templates add together. Two lights naming the same texture both apply to it, so the same " +
+		"walls can carry a broad glow in all directions from one template and light aimed away " +
+		"from the surface from another, each with its own brightness, colour and light style. " +
+		"Settings that should differ belong on separate templates rather than being squeezed into " +
+		"one."
 	_surface_radiosity(choices) : "Emissive Surface Method" : 0 : "COMPILER (light): which of the " +
 		"two surface light algorithms this template uses, overriding the map-wide setting. " +
 		"Several keys apply to only one of them." =
@@ -1209,7 +1214,10 @@
 	_surface_spotlight(choices) : "Emissive Surface Direction" : 0 : "COMPILER (light): whether " +
 		"the light from each surface is aimed away from that surface instead of shining in all " +
 		"directions. Leaving it shining in all directions is also what enables the sky scale and " +
-		"sky distance settings under the radiosity method." =
+		"sky distance settings under the radiosity method.<br><br>" +
+		"The two methods disagree over a template that omits the key entirely: subdivision shines " +
+		"in all directions, radiosity aims the light away from the surface. Set it explicitly on " +
+		"a radiosity template, because leaving it out is not the same as writing 0." =
 	[
 		0 : "Shine in all directions"
 		1 : "Aim away from the surface"
